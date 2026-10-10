@@ -138,7 +138,7 @@ let paintCache = {};
 function paintMat(col) { return paintCache[col] || (paintCache[col] = new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.25, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.08 })); }
 const flameMat = new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
 const flameGeo = (() => { const g = new THREE.ConeGeometry(0.16, 0.9, 16, 1, true); g.rotateX(-PI / 2); g.translate(0, 0, -0.45); return g; })();
-const shieldMat = new THREE.MeshPhysicalMaterial({ color: 0x9be7ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.6, depthWrite: false, side: THREE.DoubleSide });
+const shieldMat = new THREE.MeshPhysicalMaterial({ color: 0x9be7ff, transparent: true, opacity: 0.2, roughness: 0.05, metalness: 0, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.6, depthWrite: false, side: THREE.FrontSide });
 const shadowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 8, 64, 64, 62); gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
 
 // look = { char, body, wheels, glider, paint }

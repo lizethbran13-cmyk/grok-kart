@@ -53,6 +53,7 @@ export class HUD {
       const bl = r.ranking().slice(0, 4).map((i) => { const o = r.karts[i]; return (i === this.me ? '<b>' : '') + escName(o.name) + ' ' + (r.mode === 'coins' ? o.coins + '🪙' : (o.out ? '💥' : '🎈'.repeat(o.balloons))) + (i === this.me ? '</b>' : ''); }).join('<br>');
       if (L.bl !== bl) { L.bl = bl; $('hBalloons').innerHTML = bl; }
     } else {
+      if (L.bl !== '') { L.bl = ''; $('hBalloons').innerHTML = ''; }
       set('hPosN', String(k.place)); set('hPosS', ordS(k.place)); set('hLapN', String(Math.min(r.laps, Math.max(1, k.lap))));
       set('hTime', fmtTime(k.finished ? k.finishTime : r.time));
     }

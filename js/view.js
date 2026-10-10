@@ -101,7 +101,9 @@ export class RaceView {
     r.karts.forEach((k, i) => {
       const K = this.karts[i];
       animateKart(K, Object.assign(k, { hidden: k.hidden || (k.out && r.mode === 'battle' && ((t * 4) | 0) % 2 === 0) }), dt, t);
-      if (this.balloonM[i]) { const b = this.balloonM[i]; b.visible = k.balloons > 0; b.scale.setScalar(0.42 + 0.06 * k.balloons); b.rotation.z = Math.sin(t * 2 + i) * 0.15; }
+      const cp = E.camera.position, camNear = i !== this.me && (k.x - cp.x) ** 2 + (k.y + 1 - cp.y) ** 2 + (k.z - cp.z) ** 2 < 13;
+      if (camNear) K.root.visible = false; // never let a rival fill the screen
+      if (this.balloonM[i]) { const b = this.balloonM[i]; b.visible = k.balloons > 0 && !camNear; b.scale.setScalar(0.42 + 0.06 * k.balloons); b.rotation.z = Math.sin(t * 2 + i) * 0.15; }
       // particles
       const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw), rx = -fz, rz = fx; const near = (k.x - E.camera.position.x) ** 2 + (k.z - E.camera.position.z) ** 2 < 6400;
       if (!near || k.hidden) return;
@@ -148,6 +150,12 @@ export class RaceView {
     c.yaw += wrapAng(tyaw - c.yaw) * (1 - Math.exp(-(k.driftDir ? 4 : 6) * dt));
     const tx = k.x - Math.sin(c.yaw) * dist, tz = k.z - Math.cos(c.yaw) * dist; const ty = k.y + hgt + (k.glide ? 1.2 : 0) + (r.battle ? 0.6 : 0);
     c.x = damp(c.x, tx, 14, dt); c.z = damp(c.z, tz, 14, dt); c.y = damp(c.y, Math.max(ty, (k.groundY || k.y) + 1.8), k.grounded ? 8 : 4, dt);
+    if (r.battle && r.world && r.world.arena) { // keep the camera out of arena pillars / walls
+      const A = r.world.arena; let tt = 1;
+      for (let j = 1; j <= 14; j++) { const f = j / 14, x = k.x + (c.x - k.x) * f, z = k.z + (c.z - k.z) * f;
+        if (A.edgeDist(x, z) < 0.6 || A.obstacles.some((o) => (x - o[0]) ** 2 + (z - o[1]) ** 2 < (o[2] + 0.8) ** 2)) { tt = Math.max(0.25, (j - 1) / 14); break; } }
+      if (tt < 1) { c.x = k.x + (c.x - k.x) * tt; c.z = k.z + (c.z - k.z) * tt; c.y = Math.max(c.y, k.y + hgt + (1 - tt) * 2.5); }
+    }
     c.shake = Math.max(0, c.shake - dt * 2.5); const sh = c.shake * c.shake * 0.6;
     cam.position.set(c.x + (Math.random() - 0.5) * sh, c.y + (Math.random() - 0.5) * sh, c.z + (Math.random() - 0.5) * sh);
     const la = 4.5; this.tmp.set(k.x + Math.sin(c.yaw) * la, k.y + 1.3, k.z + Math.cos(c.yaw) * la); cam.lookAt(this.tmp);

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 
 const VS = `attribute float size; attribute vec4 col; varying vec4 vC; uniform float scale;
-void main(){ vC = col; vec4 mv = modelViewMatrix * vec4(position,1.0); vC.a *= smoothstep(2.0, 6.0, -mv.z); gl_PointSize = size * scale / -mv.z; gl_Position = projectionMatrix * mv; }`;
+void main(){ vC = col; vec4 mv = modelViewMatrix * vec4(position,1.0); vC.a *= smoothstep(3.0, 9.0, -mv.z); gl_PointSize = min(size * scale / -mv.z, scale * 0.22); gl_Position = projectionMatrix * mv; }`;
 const FS = `varying vec4 vC; uniform float soft; void main(){ vec2 p = gl_PointCoord - 0.5; float d = length(p); if (d > 0.5) discard; float a = smoothstep(0.5, soft, d); gl_FragColor = vec4(vC.rgb, vC.a * a); }`;
 
 class Pool {
