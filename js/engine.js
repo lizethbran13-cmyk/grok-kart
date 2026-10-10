@@ -49,7 +49,7 @@ function buildComposer() {
   E.gtao.updateGtaoMaterial({ radius: 1.2, distanceExponent: 1.6, thickness: 2.0, scale: 1.0, samples: 12, distanceFallOff: 1.0 });
   E.gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 8 });
   c.addPass(E.gtao);
-  E.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.86);
+  E.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.45, 1.1);
   c.addPass(E.bloom);
   c.addPass(new OutputPass());
   E.composer = c;
@@ -99,6 +99,7 @@ export function setEnvironment(env) {
   E.sun.color.set(env.sunColor || 0xffffff); E.sun.intensity = env.sunI != null ? env.sunI : 2.6;
   E.hemi.color.set(env.hemiSky || 0xcfe8ff); E.hemi.groundColor.set(env.hemiGround || 0x5a4a38); E.hemi.intensity = env.hemiI != null ? env.hemiI : 0.5;
   E.renderer.toneMappingExposure = env.exposure || 1.0;
+  if (E.bloom) { E.bloom.threshold = env.bloomT || 1.1; E.bloom.strength = env.bloomS || 0.5; }
   const envScene = new THREE.Scene();
   {
     // stylised gradient dome with stars/nebula for night & space themes

@@ -59,7 +59,7 @@ function simStep(dt) {
   r.step(dt, inputs);
   if (r.cfg.online && !r.guest) Net.hostTick(dt);
 }
-G.sim = (sec, step = 1 / 60) => { const n = Math.round(sec / step); for (let i = 0; i < n; i++) { if (!G.race || G.race.done) break; simStep(step); } return G.race && G.race.time; };
+G.sim = (sec, step = 1 / 60) => { const n = Math.round(sec / step); for (let i = 0; i < n; i++) { if (!G.race || G.race.done) break; simStep(step); } if (G.view) G.view.cam.init = false; if (G.hud) { G.hud.bigT = 0.01; G.hud.msgT = 0.01; } return G.race && G.race.time; };
 
 /* ---------------- screens ---------------- */
 function show(html, cls = 'screen', mount) { UI.innerHTML = `<div class="${cls}">${html}</div>`; UI.classList.add('open'); UI.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { sfx('click'); SCREENS[b.dataset.go](); })); if (mount) mount(UI.firstChild); return UI.firstChild; }
@@ -116,7 +116,7 @@ function garage(next) {
     <div class="garageInfo"><div class="gName">${esc(ch.n)}<small>${esc(ch.d)}</small></div><div class="stats">${bar('Speed', st.spd)}${bar('Accel', st.acc)}${bar('Handling', st.han)}${bar('Weight', st.wt)}</div></div>
     <div class="garageBottom"><div class="tabs">${TABS.map(([id, n]) => `<button data-tab="${id}" class="${garageTab === id ? 'on' : ''}">${n}</button>`).join('')}</div>
     <div class="cards ${garageTab === 'paint' ? 'paints' : ''}">${cards}</div>
-    <button class="go" id="gDone">${next ? "LET'S RACE! ▶" : 'DONE ✔'}</button></div>`, 'screen garage', (root) => {
+    <button class="go" id="gDone">${next ? "LET'S RACE! ▶" : 'DONE ✔'}</button></div>`, 'screen garageScr', (root) => {
     root.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { sfx('click'); garageTab = b.dataset.tab; garage(next); }));
     root.querySelectorAll('[data-paint]').forEach((b) => b.addEventListener('click', () => { sfx('click'); S.look.paint = b.dataset.paint; persist(); G.showroom.setLook(S.look); garage(next); }));
     root.querySelectorAll('.card').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.id; const it = tabDef[2].find((x) => x.id === id);

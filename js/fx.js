@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 
 const VS = `attribute float size; attribute vec4 col; varying vec4 vC; uniform float scale;
-void main(){ vC = col; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = size * scale / -mv.z; gl_Position = projectionMatrix * mv; }`;
+void main(){ vC = col; vec4 mv = modelViewMatrix * vec4(position,1.0); vC.a *= smoothstep(2.0, 6.0, -mv.z); gl_PointSize = size * scale / -mv.z; gl_Position = projectionMatrix * mv; }`;
 const FS = `varying vec4 vC; uniform float soft; void main(){ vec2 p = gl_PointCoord - 0.5; float d = length(p); if (d > 0.5) discard; float a = smoothstep(0.5, soft, d); gl_FragColor = vec4(vC.rgb, vC.a * a); }`;
 
 class Pool {
@@ -39,8 +39,8 @@ export class FX {
   spark(x, y, z, lvl, dirx, dirz) { const c = lvl >= 3 ? [0.9, 0.4, 1.4] : lvl === 2 ? [1.4, 0.65, 0.15] : lvl === 1 ? [0.35, 0.8, 1.5] : [1, 1, 0.8];
     for (let i = 0; i < 2; i++) this.add.emit(x, y, z, (Math.random() - 0.5) * 6 + dirx * 2, 2 + Math.random() * 3, (Math.random() - 0.5) * 6 + dirz * 2, c[0], c[1], c[2], 1, 0.3 + Math.random() * 0.2, 0.45, 0.1, 14, 2); }
   flame(x, y, z, vx, vz, lvl) { const c = lvl >= 3 ? [1.0, 0.45, 1.3] : lvl === 2 ? [1.4, 0.6, 0.15] : [0.4, 0.8, 1.5]; this.add.emit(x, y, z, vx + (Math.random() - 0.5), 0.6 + Math.random(), vz + (Math.random() - 0.5), c[0], c[1], c[2], 0.9, 0.22, 0.9, 0.2, -2, 3); }
-  dust(x, y, z, r, g, b) { this.norm.emit(x + (Math.random() - 0.5), y + 0.2, z + (Math.random() - 0.5), (Math.random() - 0.5) * 2, 1 + Math.random() * 1.5, (Math.random() - 0.5) * 2, r, g, b, 0.55, 0.7, 0.8, 2.4, -0.5, 1.5); }
-  smoke(x, y, z, n = 10, c = [0.95, 0.95, 1]) { for (let i = 0; i < n; i++) this.norm.emit(x + (Math.random() - 0.5) * 2, y + 0.3, z + (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 5, 1 + Math.random() * 3, (Math.random() - 0.5) * 5, c[0], c[1], c[2], 0.7, 0.9, 1.2, 3.5, -0.5, 2.5); }
+  dust(x, y, z, r, g, b) { this.norm.emit(x + (Math.random() - 0.5), y + 0.2, z + (Math.random() - 0.5), (Math.random() - 0.5) * 2, 1 + Math.random() * 1.5, (Math.random() - 0.5) * 2, r, g, b, 0.4, 0.6, 0.5, 1.4, -0.5, 1.5); }
+  smoke(x, y, z, n = 10, c = [0.95, 0.95, 1]) { for (let i = 0; i < n; i++) this.norm.emit(x + (Math.random() - 0.5) * 2, y + 0.3, z + (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 5, 1 + Math.random() * 3, (Math.random() - 0.5) * 5, c[0], c[1], c[2], 0.55, 0.8, 0.8, 2.2, -0.5, 2.5); }
   burst(x, y, z, n, cols, sp = 8, life = 0.8, size = 0.8) { for (let i = 0; i < n; i++) { const c = cols[(Math.random() * cols.length) | 0]; const a = Math.random() * 6.28, e = Math.random() * 1.5; this.add.emit(x, y, z, Math.cos(a) * Math.cos(e) * sp, Math.sin(e) * sp + 2, Math.sin(a) * Math.cos(e) * sp, c[0], c[1], c[2], 1, life * (0.6 + Math.random() * 0.6), size, 0.1, 9, 1.5); } }
   confetti(x, y, z, n = 60) { const cols = [[1, 0.3, 0.6], [0.3, 0.9, 1], [1, 0.9, 0.2], [0.4, 1, 0.4], [0.8, 0.5, 1]]; for (let i = 0; i < n; i++) { const c = cols[(Math.random() * 5) | 0]; this.norm.emit(x + (Math.random() - 0.5) * 6, y + 4 + Math.random() * 3, z + (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 8, 4 + Math.random() * 6, (Math.random() - 0.5) * 8, c[0], c[1], c[2], 1, 2.5, 0.35, 0.3, 5, 1.2); } }
   explosion(x, y, z) { this.burst(x, y + 1, z, this.low ? 30 : 70, [[1.5, 0.7, 0.2], [1.5, 0.3, 0.1], [1.4, 1.2, 0.4]], 14, 0.7, 1.6); this.smoke(x, y, z, 18, [0.5, 0.45, 0.5]); }
