@@ -84,12 +84,12 @@ function toTitle() {
   show(`<div class="titleTop">${coinsBadge()}<button class="iconBtn" data-go="options">⚙️</button></div>
     <div class="logo"><span class="l1">GROK</span><span class="l2">KART PARTY</span></div>
     <div class="menuGrid">
-      <button class="mbtn big gp" data-go="gp">🏆<b>GRAND PRIX</b><small>4 races · win the cup</small></button>
-      <button class="mbtn vs" data-go="vs">🏁<b>VS RACE</b><small>any track</small></button>
-      <button class="mbtn tt" data-go="tt">⏱️<b>TIME TRIAL</b><small>beat your ghost</small></button>
-      <button class="mbtn battle" data-go="battle">🎈<b>BATTLE</b><small>balloons · coins</small></button>
-      <button class="mbtn online" data-go="online">🌐<b>ONLINE</b><small>up to 3 friends</small></button>
-      <button class="mbtn garage wide" data-go="garage">🛠️<b>GARAGE</b><small>racers · karts</small></button>
+      <button class="mbtn big mb-gp" data-go="gp">🏆<b>GRAND PRIX</b><small>4 races · win the cup</small></button>
+      <button class="mbtn mb-vs" data-go="vs">🏁<b>VS RACE</b><small>any track</small></button>
+      <button class="mbtn mb-tt" data-go="tt">⏱️<b>TIME TRIAL</b><small>beat your ghost</small></button>
+      <button class="mbtn mb-battle" data-go="battle">🎈<b>BATTLE</b><small>balloons · coins</small></button>
+      <button class="mbtn mb-online" data-go="online">🌐<b>ONLINE</b><small>up to 3 friends</small></button>
+      <button class="mbtn mb-garage wide" data-go="garage">🛠️<b>GARAGE</b><small>racers · karts</small></button>
     </div>
     <button class="howBtn" data-go="howto">❓ HOW TO PLAY</button>`, 'screen title');
   if (!S.seenHow) { S.seenHow = true; persist(); setTimeout(() => { if (G.state === 'menu' && UI.querySelector('.title')) howto(true); }, 600); }

@@ -19,7 +19,7 @@ function models() {
   { const b = new Builder(); const st = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = i / 10 * PI * 2 - PI / 2, r = i % 2 ? 0.28 : 0.62; i ? st.lineTo(Math.cos(a) * r, -Math.sin(a) * r) : st.moveTo(Math.cos(a) * r, -Math.sin(a) * r); }
     const g = new THREE.ExtrudeGeometry(st, { depth: 0.18, bevelEnabled: true, bevelSize: 0.08, bevelThickness: 0.08, bevelSegments: 3 }); g.translate(0, 0, -0.09); b.add(g, 0xffe14d, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0.8); M.orbCore = b.build(); }
   M.coin = (() => { const g = lathe([[0, -0.1], [0.5, -0.1], [0.58, -0.05], [0.6, 0], [0.58, 0.05], [0.5, 0.1], [0, 0.1]], 40); g.rotateX(PI / 2); return g; })();
-  M.coinMat = new THREE.MeshStandardMaterial({ color: 0xffc81a, metalness: 0.85, roughness: 0.22, emissive: 0x6a4200, emissiveIntensity: 0.6 });
+  M.coinMat = new THREE.MeshStandardMaterial({ color: 0xffc81a, metalness: 0.55, roughness: 0.25, emissive: 0xffa000, emissiveIntensity: 0.45 });
   { const b = new Builder(); b.add(blob(50, 0.12, 3), 0x39e75f, 0, 0.35, 0, 0, 0, 0, 1.1, 0.45, 1.1); b.add(P.sphere, 0x39e75f, 0.5, 0.15, 0.5, 0, 0, 0, 0.35, 0.2, 0.35); b.add(P.sphere, 0x22c55e, -0.6, 0.12, -0.3, 0, 0, 0, 0.3, 0.15, 0.3);
     [-0.25, 0.25].forEach((x) => { b.add(P.sphere, 0xffffff, x, 0.72, 0.3, 0, 0, 0, 0.18); b.add(P.sphere, 0x111111, x, 0.74, 0.44, 0, 0, 0, 0.08); }); M.slime = b.build(); }
   { const b = new Builder(); b.add(lathe([[0, -0.25], [0.8, -0.25], [0.95, -0.1], [0.95, 0.1], [0.8, 0.25], [0, 0.25]], 40), 0x19c3ff); b.add(P.torus, 0xffffff, 0, 0.26, 0, PI / 2, 0, 0, 0.55, 0.55, 0.3, 1.5); b.add(P.sphere, 0x0b5f99, 0, 0.27, 0, 0, 0, 0, 0.35, 0.1, 0.35); M.puck = b.build(); }
@@ -65,7 +65,7 @@ export class RaceView {
     // camera state
     this.cam = { yaw: 0, x: 0, y: 0, z: 0, init: false, shake: 0, fov: E.baseFov, back: false };
     this.ghost = null; this.balloonM = [];
-    if (race.battle && race.mode === 'battle') this.karts.forEach((K) => { const b = new THREE.Mesh(M.balloons, vcMaterial(true)); b.position.set(0, 2.6, -1.1); b.castShadow = true; K.root.add(b); this.balloonM.push(b); const st = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 4), new THREE.MeshBasicMaterial({ color: 0xffffff })); st.position.set(0, -0.8, 0); b.add(st); });
+    if (race.battle && race.mode === 'battle') this.karts.forEach((K) => { const b = new THREE.Mesh(M.balloons, vcMaterial(true)); b.position.set(0, 2.9, -1.3); b.castShadow = true; K.root.add(b); this.balloonM.push(b); const st = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 4), new THREE.MeshBasicMaterial({ color: 0xffffff })); st.position.set(0, -0.8, 0); b.add(st); });
     this.tmp = new THREE.Vector3(); this.t = 0; this.dtAcc = 0;
   }
   makeHazard(h) {
@@ -101,7 +101,7 @@ export class RaceView {
     r.karts.forEach((k, i) => {
       const K = this.karts[i];
       animateKart(K, Object.assign(k, { hidden: k.hidden || (k.out && r.mode === 'battle' && ((t * 4) | 0) % 2 === 0) }), dt, t);
-      if (this.balloonM[i]) { const b = this.balloonM[i]; b.visible = k.balloons > 0; b.scale.setScalar(0.6 + 0.2 * k.balloons); b.rotation.z = Math.sin(t * 2 + i) * 0.15; }
+      if (this.balloonM[i]) { const b = this.balloonM[i]; b.visible = k.balloons > 0; b.scale.setScalar(0.42 + 0.06 * k.balloons); b.rotation.z = Math.sin(t * 2 + i) * 0.15; }
       // particles
       const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw), rx = -fz, rz = fx; const near = (k.x - E.camera.position.x) ** 2 + (k.z - E.camera.position.z) ** 2 < 6400;
       if (!near || k.hidden) return;

@@ -39,7 +39,7 @@ h3{margin:14px 2px 6px;font-size:14px;letter-spacing:2px;opacity:.85;font-weight
 .mbtn.big{grid-column:span 2;flex-direction:row;justify-content:center;gap:12px;font-size:34px;padding:12px}
 .mbtn.wide{grid-column:span 2;flex-direction:row;justify-content:center;gap:10px;font-size:24px}.mbtn.wide small{display:none}
 .mbtn.big b{font-size:22px}.mbtn.big small{display:none}
-.gp{background:linear-gradient(135deg,#ff8a1f,#ff3b5c)}.vs{background:linear-gradient(135deg,#19c3ff,#5b6cff)}.tt{background:linear-gradient(135deg,#2ee86d,#00a88a)}.battle{background:linear-gradient(135deg,#ff4fd8,#b04dff)}.online{background:linear-gradient(135deg,#00d1b2,#19c3ff)}.garage{background:linear-gradient(135deg,#ffd60a,#ff8a1f)}
+.mb-gp{background:linear-gradient(135deg,#ff8a1f,#ff3b5c)}.mb-vs{background:linear-gradient(135deg,#19c3ff,#5b6cff)}.mb-tt{background:linear-gradient(135deg,#2ee86d,#00a88a)}.mb-battle{background:linear-gradient(135deg,#ff4fd8,#b04dff)}.mb-online{background:linear-gradient(135deg,#00d1b2,#19c3ff)}.mb-garage{background:linear-gradient(135deg,#ffd60a,#ff8a1f)}
 .howBtn{margin:10px 0 2px;background:rgba(20,10,60,.55);border:3px solid #fff;border-radius:999px;padding:8px 18px;font-weight:900;font-size:15px}
 .go{display:block;width:100%;margin:14px 0 4px;padding:14px;border-radius:20px;font-size:21px;font-weight:900;letter-spacing:1px;background:linear-gradient(180deg,#5dff8f,#16c24a);border:3px solid #fff;box-shadow:0 6px 0 #0b7a2c;text-shadow:0 2px 0 rgba(0,0,0,.2)}
 .go:disabled{filter:grayscale(1);opacity:.6}
