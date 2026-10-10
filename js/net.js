@@ -53,9 +53,10 @@ function bind(room) {
   Net.room = room;
   room.on('status', (t) => status(t, true));
   room.on('open', () => { status('Connected!', true); sfx('coin'); room.send({ t: 'look', name: myName(), look: S.look }); if (room.isHost) Net.looks[room.pid] = { name: myName(), look: cleanLook(S.look) }; Net.roomPanel(); toast(room.isHost ? 'Room ' + room.code + ' is open!' : 'Joined room ' + room.code + '!'); });
-  room.on('join', (p) => { if (p.pid !== room.pid) { toast('👋 ' + p.name + ' joined!'); sfx('coin'); } if (G.state === 'menu' && Net.room) Net.roomPanel(); });
+  room.on('join', (p) => { if (room.isHost && G.race && G.race.cfg.online) G.race.karts.forEach((k) => { if (k.pid === p.pid && k.ctrl === 'cpu' && k.wasRemote) { k.ctrl = 'remote'; k.ai = null; toast(p.name + ' is back!'); } });
+    if (p.pid !== room.pid) { toast('👋 ' + p.name + ' joined!'); sfx('coin'); } if (G.state === 'menu' && Net.room) Net.roomPanel(); });
   room.on('leave', (p) => { toast(p.name + ' left', true); if (G.state === 'menu' && Net.room) Net.roomPanel();
-    if (room.isHost && G.race && G.race.cfg.online) G.race.karts.forEach((k, i) => { if (k.pid === p.pid && k.ctrl === 'remote') { k.ctrl = 'cpu'; initAI(k, G.race.diff.skill, rng(i + 5)); toast('A CPU takes over for ' + p.name); } }); });
+    if (room.isHost && G.race && G.race.cfg.online) G.race.karts.forEach((k, i) => { if (k.pid === p.pid && k.ctrl === 'remote') { k.ctrl = 'cpu'; k.wasRemote = true; initAI(k, G.race.diff.skill, rng(i + 5)); toast('A CPU takes over for ' + p.name); } }); });
   room.on('message', (d, from) => onMsg(d, from));
   room.on('reconnecting', () => toast('Lost the host - reconnecting…', true));
   room.on('error', (e) => { status(e.title + ': ' + e.message); const inGame = G.race && G.race.cfg.online; Net.room = null; if (inGame || G.state === 'menu') { toast(e.title + ' - back to the menu', true); G.session = null; G.toTitle(); } });
