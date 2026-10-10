@@ -64,7 +64,7 @@ export class Race {
       else if (k.ctrl === 'cpu') k.cpuMul = this.diff.spd;
       if (k.out) { k.speed *= 0.95; return; }
       stepKart(k, this.world, dt, this);
-      if (k.stuck > 4 && !this.battle) { k.stuck = 0; startRespawn(k, this.world, {}); }
+      if (k.stuck > 4 && !this.battle) { k.stuck = 0; this.emit(k, 'stuckreset'); startRespawn(k, this.world, {}); }
     });
     this.collide();
     stepItems(this, dt);
@@ -95,7 +95,7 @@ export class Race {
   }
   fx(type, x, y, z) { this.cbs.fx(type, x, y, z); this.fxQueue.push([type, +x.toFixed(1), +y.toFixed(1), +z.toFixed(1)]); }
   flash(type, e) { this.cbs.flash(type, e); this.fxQueue.push(['flash_' + type, 0, 0, 0]); }
-  emit(k, ev) { this.cbs.event(k, ev); this.evQueue.push([k ? k.slot : -1, ev]); }
+  emit(k, ev) { this.evCount = this.evCount || {}; this.evCount[ev] = (this.evCount[ev] || 0) + 1; this.cbs.event(k, ev); this.evQueue.push([k ? k.slot : -1, ev]); }
   flushEvents(k) { if (k.events.length) { for (const ev of k.events) this.emit(k, ev); k.events.length = 0; } }
   checkEnd(dt) {
     const ks = this.karts, humans = ks.filter((k) => k.ctrl !== 'cpu');
@@ -103,7 +103,7 @@ export class Race {
       if (this.mode === 'coins') this.coinsW = this.coinsW.filter((c) => c.respawn !== false || c.t < 1e8);
       const alive = ks.filter((k) => !k.out); const humansAlive = humans.filter((k) => !k.out);
       if (this.endTimer < 0 && (this.time >= this.timeLimit || (this.mode === 'battle' && (alive.length <= 1 || humansAlive.length === 0)))) this.endTimer = 2.5;
-    } else if (this.endTimer < 0 && humans.length && humans.every((k) => k.finished)) this.endTimer = 3.5;
+    } else if (this.endTimer < 0 && humans.length && humans.every((k) => k.finished) && (!this.cfg.waitAll || ks.every((k) => k.finished) || this.time > 400)) this.endTimer = 3.5;
     else if (this.endTimer < 0 && !humans.length && ks.every((k) => k.finished)) this.endTimer = 0.5;
     if (this.endTimer >= 0) { this.endTimer -= dt; if (this.endTimer < 0) this.finish(); }
   }

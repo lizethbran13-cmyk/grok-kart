@@ -85,19 +85,20 @@ export function stepKart(k, world, dt, race) {
   if (k.grounded) {
     if (!q2.solid) { k.grounded = false; k.vy = 0; k.launched = false; }
     else {
-      const dy = q2.y - k.y;
+      const lift = !world.arena && q2.road ? rampLift(world, q2) : 0;
+      const gy = q2.y + lift; const dy = gy - k.y;
       if (dy < -0.9) { k.grounded = false; k.vy = Math.max(0, (k.slopePrev || 0)) * sp; k.launched = false; }
-      else k.y = q2.y;
+      else k.y = gy;
       k.slopePrev = q2.slope;
       // ramps / glide ramps / pads
-      if (!world.arena && q2.road) rampCheck(k, world, q2, sp);
+      if (!world.arena && q2.road && k.grounded) rampCheck(k, world, q2, sp);
       if (world.arena && world.arena.rampAt(k.x, k.z, k.yaw) && sp > 8) { k.vy = 8 + sp * 0.1; k.grounded = false; k.launched = true; k.events.push('ramp'); }
       padCheck(k, world, q2);
     }
   }
   if (!k.grounded) {
     k.air += dt;
-    k.vy -= GRAV * (k.glide ? 0.22 : 1) * dt; if (k.glide) k.vy = Math.max(k.vy, -4);
+    k.vy -= GRAV * (k.glide ? 0.3 : 1) * dt; if (k.glide) k.vy = Math.max(k.vy, -4.5);
     k.y += k.vy * dt;
     if (q2.solid && k.y <= q2.y && k.vy <= 0) {
       if (k.y < q2.y - 2.5) { k.x = px; k.z = pz; k.speed *= 0.3; k.y = q2.y; } // hit a ledge from below
@@ -134,12 +135,19 @@ function rampCheck(k, world, q, sp) {
     let ds = q.s - r.s0; if (ds < -world.D.L / 2) ds += world.D.L;
     const len = ((r.s1 - r.s0) + world.D.L) % world.D.L || 8;
     if (ds > len - 2.2 && ds < len + 1.2 && Math.abs(q.lat - r.lat) < r.hw + 0.3 && sp > 6) {
-      if (r.glide) { k.vy = 12.5; k.glide = true; k.events.push('glide'); }
+      if (r.glide) { k.vy = 10.5; k.glide = true; k.events.push('glide'); }
       else { k.vy = 7.5 + sp * 0.13; k.events.push('ramp'); }
       k.y += r.h * 0.5; k.grounded = false; k.launched = true; k.trick = false; return;
     }
-    if (ds > 0 && ds < len) { const t = ds / len; k.y = Math.max(k.y, q.y + r.h * Math.pow(t, 1.4) * (Math.abs(q.lat - r.lat) < r.hw ? 1 : 0)); }
   }
+}
+function rampLift(world, q) {
+  for (const r of world.W.ramps) {
+    let ds = q.s - r.s0; if (ds < -world.D.L / 2) ds += world.D.L;
+    const len = ((r.s1 - r.s0) + world.D.L) % world.D.L || 8;
+    if (ds > 0 && ds < len && Math.abs(q.lat - r.lat) < r.hw) return r.h * Math.pow(ds / len, 1.4);
+  }
+  return 0;
 }
 function padCheck(k, world, q) {
   if (world.arena) return;

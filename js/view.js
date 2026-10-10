@@ -142,7 +142,7 @@ export class RaceView {
   updateCamera(dt) {
     const r = this.race, k = r.karts[this.me]; if (!k) return; const c = this.cam, cam = E.camera;
     const portrait = E.h > E.w;
-    const dist = (portrait ? 7.6 : 6.4) * (k.shrink > 0 ? 0.85 : 1), hgt = portrait ? 3.3 : 2.7;
+    const dist = (portrait ? 8.6 : 7.0) * (k.shrink > 0 ? 0.85 : 1), hgt = portrait ? 3.7 : 3.0;
     let tyaw = k.yaw + (k.driftVis || 0) * 0.45; if (k.spin > 0) tyaw = c.yaw; if (c.back) tyaw += PI;
     if (!c.init || k.respawn > 1.2) { c.yaw = tyaw; c.init = true; c.x = k.x - Math.sin(tyaw) * dist; c.z = k.z - Math.cos(tyaw) * dist; c.y = k.y + hgt; }
     c.yaw += wrapAng(tyaw - c.yaw) * (1 - Math.exp(-(k.driftDir ? 4 : 6) * dt));

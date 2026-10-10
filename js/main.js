@@ -89,7 +89,7 @@ function toTitle() {
       <button class="mbtn tt" data-go="tt">⏱️<b>TIME TRIAL</b><small>beat your ghost</small></button>
       <button class="mbtn battle" data-go="battle">🎈<b>BATTLE</b><small>balloons · coins</small></button>
       <button class="mbtn online" data-go="online">🌐<b>ONLINE</b><small>up to 3 friends</small></button>
-      <button class="mbtn garage" data-go="garage">🛠️<b>GARAGE</b><small>racers · karts</small></button>
+      <button class="mbtn garage wide" data-go="garage">🛠️<b>GARAGE</b><small>racers · karts</small></button>
     </div>
     <button class="howBtn" data-go="howto">❓ HOW TO PLAY</button>`, 'screen title');
   if (!S.seenHow) { S.seenHow = true; persist(); setTimeout(() => { if (G.state === 'menu' && UI.querySelector('.title')) howto(true); }, 600); }
@@ -215,8 +215,8 @@ function onEvent(k, ev) {
   if (G.view) G.view.onEvent(k, ev);
   if (!k) {
     if (ev.startsWith('count')) { G.hud.big(`<span class="cnt">${ev.slice(5)}</span>`, 0.9, 'count'); sfx('count'); }
-    else if (ev === 'go') { G.hud.big('<span class="cnt go">GO!</span>', 0.9, 'count'); sfx('go'); }
-    else if (ev === 'raceover') setTimeout(() => showResults(), 900);
+    else if (ev === 'go') { G.hud.big('<span class="cnt cntgo">GO!</span>', 0.9, 'count'); sfx('go'); }
+    else if (ev === 'raceover') { const rr = G.race; setTimeout(() => showResults(rr), 900); }
     return;
   }
   const mine = k === me;
@@ -251,8 +251,8 @@ G.togglePause = togglePause;
 
 /* ---------------- results ---------------- */
 function rewardFor(res, mode) { if (mode === 'tt') return 3; const bonus = mode === 'battle' || mode === 'coins' ? [12, 8, 5, 3, 2, 2] : [12, 8, 6, 4, 3, 2, 2, 2]; return (bonus[res.place - 1] || 2) + Math.min(15, res.coins || 0); }
-function showResults() {
-  const r = G.race; if (!r || G.state !== 'race') return; if (!r.results) r.finish(); G.state = 'results'; $('touch').classList.add('hidden'); $('hPause').style.display = 'none';
+function showResults(which) {
+  const r = G.race; if (!r || G.state !== 'race' || (which && which !== r)) return; if (!r.results) r.finish(); G.state = 'results'; $('touch').classList.add('hidden'); $('hPause').style.display = 'none';
   const res = r.results, mine = res.find((x) => x.slot === G.me) || res[0]; const mode = r.mode;
   const earned = rewardFor(mine, mode); S.coins += earned; S.stats.races++; if (mine.place === 1) S.stats.wins++;
   let extra = '';

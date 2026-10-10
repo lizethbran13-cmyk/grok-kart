@@ -121,7 +121,7 @@ function applySnap(d) {
   else for (let i = 0; i < r.coinsW.length; i++) r.coinsW[i].t = d.c[i] === '1' ? 1 : 0;
   (d.fx || []).forEach(([t, x, y, z]) => { if (t.startsWith('flash_')) { if (r.cbs.flash) r.cbs.flash(t.slice(6)); } else if (r.cbs.fx) r.cbs.fx(t, x, y, z); });
   (d.ev || []).forEach(([slot, ev]) => H.onEvent(slot >= 0 ? r.karts[slot] : null, ev === 'raceover' ? 'raceover_net' : ev));
-  if (d.res && !r.done) { r.done = true; r.results = d.res; setTimeout(() => H.showResults(), 900); }
+  if (d.res && !r.done) { r.done = true; r.results = d.res; setTimeout(() => H.showResults(r), 900); }
 }
 function onMsg(d, from) {
   const room = Net.room; if (!d || typeof d !== 'object' || !room) return;

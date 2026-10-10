@@ -31,8 +31,8 @@ export class Showroom {
     if (this.kart) { this.bounce = Math.max(0, (this.bounce || 0) - dt); animateKart(this.kart, { x: 0, y: Math.sin(this.bounce * 12) * this.bounce * 0.5, z: 0, yaw: this.angle, speed: 4, steer: Math.sin(t * 0.8) * 0.4 }, dt, t); }
     this.bal.rotation.y = t * 0.05; this.bal.position.y = Math.sin(t) * 0.3;
     const portrait = E.h > E.w; const cam = E.camera;
-    cam.position.set(0, portrait ? 3.4 : 2.6, portrait ? 9.5 : 7.2); cam.lookAt(0, portrait ? -0.3 : 0.6, 0);
-    if (portrait) { cam.setViewOffset(E.w, E.h, 0, E.h * 0.17, E.w, E.h); } else cam.clearViewOffset();
+    cam.position.set(0, portrait ? 3.0 : 2.6, portrait ? 8.2 : 7.2); cam.lookAt(0, portrait ? 0.7 : 0.6, 0);
+    if (portrait && !this.centered) { cam.setViewOffset(E.w, E.h, 0, E.h * 0.12, E.w, E.h); } else cam.clearViewOffset();
     if (cam.fov !== E.baseFov) { cam.fov = E.baseFov; cam.updateProjectionMatrix(); }
     followShadow(0, 0, 0);
   }
