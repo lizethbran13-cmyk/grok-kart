@@ -101,7 +101,7 @@ export class RaceView {
     r.karts.forEach((k, i) => {
       const K = this.karts[i];
       animateKart(K, Object.assign(k, { hidden: k.hidden || (k.out && r.mode === 'battle' && ((t * 4) | 0) % 2 === 0) }), dt, t);
-      const cp = E.camera.position, camNear = i !== this.me && (k.x - cp.x) ** 2 + (k.y + 1 - cp.y) ** 2 + (k.z - cp.z) ** 2 < 13;
+      const cp = E.camera.position, camNear = i !== this.me && (k.x - cp.x) ** 2 + (k.y + 1 - cp.y) ** 2 + (k.z - cp.z) ** 2 < 26;
       if (camNear) K.root.visible = false; // never let a rival fill the screen
       if (this.balloonM[i]) { const b = this.balloonM[i]; b.visible = k.balloons > 0 && !camNear; b.scale.setScalar(0.42 + 0.06 * k.balloons); b.rotation.z = Math.sin(t * 2 + i) * 0.15; }
       // particles
