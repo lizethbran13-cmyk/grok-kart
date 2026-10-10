@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14102b">
+<title>Grok Kart Party</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.min.js", "three/addons/": "./lib/addons/" } }
+</script>
+<script src="lib/peerjs.min.js"></script>
+<script src="lib/grok-net.js"></script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud" class="hidden">
+  <div id="hPos"><span id="hPosN">1</span><sup id="hPosS">st</sup></div>
+  <div id="hTop">
+    <div id="hLap">LAP <b id="hLapN">1</b>/<span id="hLapT">3</span></div>
+    <div id="hTime">0:00.00</div>
+    <div id="hCoins">🪙 <b id="hCoinN">0</b></div>
+  </div>
+  <div id="hItem"><div id="hItemIc"></div><div id="hItemX"></div></div>
+  <div id="hBalloons"></div>
+  <div id="hMap"><canvas id="mapC" width="220" height="220"></canvas></div>
+  <div id="hMsg"></div>
+  <div id="hBig"></div>
+  <div id="hSplat"></div>
+  <div id="hDrift"></div>
+  <button id="hPause" aria-label="pause">II</button>
+</div>
+<div id="touch" class="hidden">
+  <div id="tSteer">
+    <button id="tL" class="tb">◀</button><button id="tR" class="tb">▶</button>
+  </div>
+  <div id="tDragZone"><div id="tDragKnob"></div></div>
+  <div id="tRight">
+    <button id="tItem" class="tb">ITEM</button>
+    <button id="tDrift" class="tb">DRIFT<small>hop · trick</small></button>
+    <button id="tGas" class="tb">GAS</button>
+    <button id="tBrake" class="tb">◼<small>brake</small></button>
+  </div>
+</div>
+<div id="ui"></div>
+<div id="toast"></div>
+<div id="loading"><div class="lg">GROK<br><span>KART PARTY</span></div><div class="bar"><i id="loadBar"></i></div><p id="loadTxt">Warming up the engines…</p></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
