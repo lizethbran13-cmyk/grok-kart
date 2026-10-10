@@ -32,14 +32,16 @@ function bodyGeo(id) {
   b.add(P.cyl, dark, 0, top + 0.28, 0.32, 0.9, 0, 0, 0.05, 0.6, 0.05);
   b.add(P.torus, dark, 0, top + 0.5, 0.18, 0.75, 0, 0, 0.24, 0.24, 0.24);
   b.add(P.capsule, chrome, 0, 0.18, id === 'rocket' ? 1.72 : 1.42, 0, 0, PI / 2, 0.35, 1.3, 0.35);
-  [-0.35, 0.35].forEach((x) => { b.add(P.cyl, chrome, x, 0.42, -1.3, PI / 2 - 0.25, 0, 0, 0.11, 0.5, 0.11); b.add(P.cyl, 0x222222, x, 0.48, -1.53, PI / 2 - 0.25, 0, 0, 0.08, 0.04, 0.08); });
+  [-0.42, 0.42].forEach((x) => { b.add(P.cyl, chrome, x, 0.62, -1.22, PI / 2 - 0.85, 0, 0, 0.1, 0.5, 0.1); b.add(P.torus, 0xff8a1f, x, 0.8, -1.38, PI / 2 - 0.85, 0, 0, 0.09, 0.09, 0.09, 0.8); });
+  b.add(P.capsule, dark, 0, 0.22, -1.32, 0, 0, PI / 2, 0.3, 1.25, 0.3);
+  [-0.55, 0.55].forEach((x) => b.add(P.rboxS, 0xff2d55, x, 0.42, -1.33, 0, 0, 0, 0.26, 0.12, 0.06, 1.4));
   [-0.45, 0.45].forEach((x) => b.add(P.sphere, 0xfff6c0, x, 0.38, id === 'rocket' ? 1.6 : 1.35, 0, 0, 0, 0.12, 0.12, 0.08, 1.5));
   if (id === 'rocket' || id === 'wedge') { b.add(P.rbox, dark, 0, 1.0, -1.15, 0, 0, 0, 1.6, 0.08, 0.4); [-0.6, 0.6].forEach((x) => b.add(P.rbox, dark, x, 0.8, -1.12, 0, 0, 0, 0.08, 0.4, 0.3)); }
   if (id === 'monster') { b.add(P.rbox, 0x333333, 0, 0.95, 0.1, 0, 0, 0, 1.5, 0.08, 0.08); [-0.7, 0.7].forEach((x) => b.add(P.cyl, 0xffe14d, x, 0.95, 0.1, PI / 2, 0, 0, 0.12, 0.12, 0.12, 1.4)); }
   if (id === 'tub') { b.add(P.cyl, chrome, 0.5, 1.0, -0.9, 0, 0, 0, 0.05, 0.6, 0.05); b.add(tube([[0.5, 1.3, -0.9], [0.5, 1.45, -0.7], [0.5, 1.3, -0.55]], 0.05, 10, 8), chrome); for (let i = 0; i < 6; i++) b.add(P.sphere, 0xe0f7ff, -0.6 + Math.random() * 1.2, 0.95, -0.8 + Math.random() * 1.6, 0, 0, 0, 0.12 + Math.random() * 0.1); }
   if (id === 'bubble') b.add(P.sphere, 0xbfefff, 0, 0.7, 0.75, 0, 0, 0, 0.5, 0.25, 0.3);
   // side pods + number disc
-  [-0.78, 0.78].forEach((x) => b.add(P.capsule, 0xffffff, x, 0.32, -0.05, PI / 2, 0, 0, 0.32, 0.9, 0.32));
+  [-0.78, 0.78].forEach((x) => b.add(P.capsule, 0xffffff, x, 0.32, -0.05, PI / 2, 0, 0, 0.36, 0.55, 0.36));
   return (bodyCache[id] = { paint: g, trim: b.build(), top, seatZ, len: id === 'rocket' ? 1.75 : 1.45 });
 }
 function wheelGeo(id) {

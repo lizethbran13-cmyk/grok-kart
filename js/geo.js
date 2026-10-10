@@ -30,13 +30,14 @@ export class Builder {
 }
 // shared high-poly primitives
 export const P = {
-  sphere: new THREE.SphereGeometry(1, 28, 18),
+  sphere: new THREE.SphereGeometry(1, 22, 14),
   sphereLo: new THREE.SphereGeometry(1, 16, 10),
   ico: smoothIco(1, 3),
   cyl: new THREE.CylinderGeometry(1, 1, 1, 28, 1),
   cone: new THREE.ConeGeometry(1, 1, 28, 1),
-  torus: new THREE.TorusGeometry(1, 0.3, 16, 40),
+  torus: new THREE.TorusGeometry(1, 0.3, 12, 32),
   capsule: new THREE.CapsuleGeometry(0.5, 1, 8, 20),
+  capsuleLo: new THREE.CapsuleGeometry(0.5, 1, 2, 6),
   rbox: new RoundedBoxGeometry(1, 1, 1, 4, 0.18),
   rboxS: new RoundedBoxGeometry(1, 1, 1, 3, 0.08),
 };
@@ -44,7 +45,7 @@ export function smoothIco(r, d) { let g = new THREE.IcosahedronGeometry(r, d); g
 export function lathe(points, seg = 32) { return new THREE.LatheGeometry(points.map((p) => new THREE.Vector2(p[0], p[1])), seg); }
 export function tube(pts, r, seg = 40, rs = 12) { return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(p[0], p[1], p[2]))), seg, r, rs, false); }
 // lumpy organic sphere (rocks, bushes, clouds)
-export function blob(seed, amp = 0.18, detail = 3) {
+export function blob(seed, amp = 0.18, detail = 2) {
   const g = smoothIco(1, detail); const p = g.attributes.position; let s = seed * 9301 + 49297;
   const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
   const k = [rnd() * 6, rnd() * 6, rnd() * 6, 1.5 + rnd() * 2];

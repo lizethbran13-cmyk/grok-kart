@@ -10,7 +10,7 @@ initEngine(document.getElementById('c'), 'high'); setEnvironment(THEMES.city.env
 const fl = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x8fe08a })); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; E.scene.add(fl);
 const q = new URLSearchParams(location.search); const back = q.get('back') === '1';
 CHARS.forEach((c, i) => { const K = makeKart({ char: c.id, body: BODIES[i % BODIES.length].id, wheels: WHEELS[i % WHEELS.length].id, paint: PAINTS[(i * 3) % PAINTS.length], glider: GLIDERS[i % GLIDERS.length].id }); E.scene.add(K.root);
-  animateKart(K, { x: (i % 2) * 4 - 2, y: 0, z: -Math.floor(i / 2) * 5, yaw: back ? 0.25 : Math.PI - 0.5, speed: 0, steer: 0.3, glide: q.get('glide') === '1' }, 1, 0); });
+  animateKart(K, { x: (i % 2) * 4 - 2, y: 0, z: -Math.floor(i / 2) * 5, yaw: back ? Math.PI - 0.4 : 0.45, speed: 0, steer: 0.3, glide: q.get('glide') === '1' }, 1, 0); });
 E.camera.position.set(0, 5, back ? -30 : 9); E.camera.lookAt(0, 0.5, -10); followShadow(0, 0, -10);
 let t = 0; function loop() { t += 0.016; render(0.016); requestAnimationFrame(loop); } loop(); window.ready = true;
 </script></body></html>

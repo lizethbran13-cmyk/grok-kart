@@ -36,9 +36,9 @@ const MAKERS = {
   cupcake() { const b = new Builder(); b.addFn(lathe([[0, 0], [1.5, 0], [1.9, 1.6], [1.95, 1.7], [0, 1.7]], 40), (c, x, y, z) => c.set(Math.sin(Math.atan2(z, x) * 12) > 0 ? 0xffb3d9 : 0xff7ab6));
     for (let i = 0; i < 4; i++) b.add(P.torus, 0xfff5fb, 0, 1.9 + i * 0.5, 0, PI / 2, 0, 0, 1.7 - i * 0.38, 1.7 - i * 0.38, 1.4);
     b.add(P.sphere, 0xff1744, 0, 4.0, 0, 0, 0, 0, 0.42); b.add(tube([[0, 4.3, 0], [0.2, 4.8, 0.1]], 0.05, 6, 6), 0x2e7d32); return b.build(); },
-  donut() { const b = new Builder(); b.add(new THREE.TorusGeometry(1.4, 0.7, 20, 40), 0xe0a060, 0, 0.7, 0, PI / 2);
-    b.add(new THREE.TorusGeometry(1.4, 0.72, 20, 40, PI * 2), 0xff6fbd, 0, 0.92, 0, PI / 2, 0, 0, 1.0, 1.0, 0.75);
-    const sp = [0xffffff, 0xffe14d, 0x3ff0ff, 0x7cff6b]; for (let i = 0; i < 18; i++) { const a = i * 2.4, r = 1.2 + (i % 3) * 0.3; b.add(P.capsule, sp[i % 4], Math.cos(a) * r, 1.45, Math.sin(a) * r, PI / 2, 0, a, 0.08, 0.15, 0.08); }
+  donut() { const b = new Builder(); b.add(new THREE.TorusGeometry(1.4, 0.7, 14, 32), 0xe0a060, 0, 0.7, 0, PI / 2);
+    b.add(new THREE.TorusGeometry(1.4, 0.72, 14, 32), 0xff6fbd, 0, 0.92, 0, PI / 2, 0, 0, 1.0, 1.0, 0.75);
+    const sp = [0xffffff, 0xffe14d, 0x3ff0ff, 0x7cff6b]; for (let i = 0; i < 18; i++) { const a = i * 2.4, r = 1.2 + (i % 3) * 0.3; b.add(P.capsuleLo, sp[i % 4], Math.cos(a) * r, 1.45, Math.sin(a) * r, PI / 2, 0, a, 0.08, 0.15, 0.08); }
     return b.build(); },
   palm() { const b = new Builder(); const trunk = []; for (let i = 0; i <= 8; i++) trunk.push([Math.sin(i / 8 * 1.4) * 1.6, i * 0.8, 0]);
     b.addFn(tube(trunk, 0.32, 40, 14), (c, x, y) => c.set(Math.sin(y * 7) > 0 ? 0xa86b3c : 0x8b5a2b));
