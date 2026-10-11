@@ -6,6 +6,7 @@ import { Builder, P, lathe, blob, tube } from './geo.js';
 import { vcMaterial } from './themes.js';
 import { prop } from './props.js';
 import { FX } from './fx.js';
+import { makeVisTest } from './perf.js';
 import { hazardPos } from './items.js';
 import { damp, wrapAng, clamp } from './util.js';
 
@@ -98,9 +99,12 @@ export class RaceView {
   update(dt) {
     const r = this.race, t = (this.t += dt), M = models();
     // karts
+    const vis = makeVisTest(E.camera, E.sun.target.position);
     r.karts.forEach((k, i) => {
       const K = this.karts[i];
-      animateKart(K, Object.assign(k, { hidden: k.hidden || (k.out && r.mode === 'battle' && ((t * 4) | 0) % 2 === 0) }), dt, t);
+      Object.assign(k, { hidden: k.hidden || (k.out && r.mode === 'battle' && ((t * 4) | 0) % 2 === 0) });
+      if (i === this.me || vis(k.x, k.y + 1, k.z, 4)) animateKart(K, k, dt, t);
+      else { K.root.position.set(k.x, k.y, k.z); K.root.rotation.y = k.yaw + (k.driftVis || 0) + (k.spinVis || 0); K.root.visible = !k.hidden; } // offscreen: skip the cosmetic animation
       const cp = E.camera.position, camNear = i !== this.me && (k.x - cp.x) ** 2 + (k.y + 1 - cp.y) ** 2 + (k.z - cp.z) ** 2 < 26;
       if (camNear) K.root.visible = false; // never let a rival fill the screen
       if (this.balloonM[i]) { const b = this.balloonM[i]; b.visible = k.balloons > 0 && !camNear; b.scale.setScalar(0.42 + 0.06 * k.balloons); b.rotation.z = Math.sin(t * 2 + i) * 0.15; }

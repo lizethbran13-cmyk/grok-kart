@@ -12,6 +12,7 @@ import { Showroom } from './showroom.js';
 import { initInput, readInput, setControlMode, enableTilt, IN } from './input.js';
 import { initAudio, sfx, engine, music, stopMusic, setSound, SND } from './audio.js';
 import { S, persist, resetSave } from './save.js';
+import { initDecorCull, decorCull, warmShaders, collect, freeUnused } from './perf.js';
 import { thumb } from './thumbs.js';
 import { Net } from './net.js';
 import { $, esc, fmtTime, ord, toast, rng, clamp } from './util.js';
@@ -22,8 +23,9 @@ const UI = $('ui');
 /* ---------------- boot ---------------- */
 function boot() {
   $('loadBar').style.width = '30%';
-  initEngine($('c'), S.opts.quality); E.autoQ = S.opts.autoQ !== false;
-  E.onAutoLow = () => { S.opts.quality = 'low'; persist(); toast('Graphics set to LOW for smoother racing'); };
+  // older versions could flip a phone to LOW by themselves; that saved LOW is cleared once. LOW is now manual only.
+  if (!S.opts.qManual) { if (S.opts.quality === 'low') S.opts.quality = 'high'; S.opts.qManual = 1; delete S.opts.autoQ; persist(); }
+  initEngine($('c'), S.opts.quality);
   initInput(S.opts); setControlMode(S.opts.steer, S.opts.auto); setSound(S.opts.sound, S.opts.music);
   IN.onKey = (code) => { if (code === 'Escape' || code === 'KeyP') { if (G.state === 'race') togglePause(); } if (code === 'KeyQ' && G.view) G.view.cam.back = !G.view.cam.back; };
   $('hPause').addEventListener('click', () => togglePause());
@@ -47,7 +49,7 @@ function frame(now) {
   trackFps(dt, now);
   if (G.state === 'race' && G.race) {
     if (!G.paused || (G.race.cfg.online)) { if (!G.race.guest) { acc += dt * G.simSpeed; let n = 0; while (acc >= 1 / 60 && n < 5) { simStep(1 / 60); acc -= 1 / 60; n++; } if (n >= 5) acc = 0; } else Net.guestFrame(dt); }
-    G.view.update(dt); G.hud.update(dt);
+    G.view.update(dt); decorCull(G.W, E.camera, E.sun.target.position, E.scene.fog ? E.scene.fog.density : 0); G.hud.update(dt);
     const me = G.race.karts[G.me]; if (me) engine(me.speed, me.boost > 0, !G.paused && !G.race.done);
   } else if (G.showroom) G.showroom.update(dt);
   render(dt);
@@ -67,7 +69,7 @@ function closeUI() { UI.innerHTML = ''; UI.classList.remove('open'); }
 G.closeUI = closeUI;
 G.menuScene = () => { if (G.race || !G.showroom) { clearRaceScene(); hideRaceUI(); } ensureShowroom(); music('menu'); };
 function coinsBadge() { return `<div class="coinsBadge">🪙 <b>${S.coins}</b></div>`; }
-function ensureShowroom() { if (!G.showroom) { clearRaceScene(); G.showroom = new Showroom(); } G.showroom.setLook(S.look); }
+function ensureShowroom() { if (!G.showroom) { const old = collect([G.W && G.W.grp, G.view && G.view.grp]); clearRaceScene(); G.showroom = new Showroom(); G.showroom.setLook(S.look); freeUnused(old, E.scene); E.renderer.renderLists.dispose(); } G.showroom.setLook(S.look); }
 const seg = (id, opts, val) => `<div class="seg" id="${id}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(v) === String(val) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 function bindSeg(root, id, fn) { const el = root.querySelector('#' + id); if (!el) return; el.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { sfx('click'); el.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); fn(b.dataset.v); })); }
 const tog = (id, on) => `<button class="tog ${on ? 'on' : ''}" id="${id}"><i></i></button>`;
@@ -191,6 +193,7 @@ function hideRaceUI() { $('hud').classList.add('hidden'); $('touch').classList.a
 function startRace(cfg) {
   closeUI(); G.state = 'loading'; $('loading').classList.remove('gone'); $('loadTxt').textContent = 'Building ' + (cfg.mode === 'battle' || cfg.mode === 'coins' ? (ARENAS.find((a) => a.id === cfg.track) || ARENAS[0]).n : trackById(cfg.track).n) + '…'; $('loadBar').style.width = '40%';
   setTimeout(() => {
+    const old = collect([G.W && G.W.grp, G.view && G.view.grp, G.showroom && G.showroom.grp]);
     clearRaceScene(); stopMusic();
     const r = new Race(cfg); r.guest = !!cfg.guest; G.me = cfg.me || 0;
     const theme = r.battle ? r.arenaDef.theme : r.T.theme; setEnvironment(THEMES[theme].env);
@@ -198,6 +201,7 @@ function startRace(cfg) {
     r.attachWorld(W); G.W = W; G.race = r;
     if (cfg.mode === 'tt') { const k = r.karts[0]; k.item = 'turbo3'; k.itemQty = 3; }
     G.view = new RaceView(r, W, { me: G.me }); G.hud = new HUD(r, G.me);
+    initDecorCull(W); freeUnused(old, E.scene); E.renderer.renderLists.dispose(); warmShaders(E.renderer, E.scene, E.camera);
     if (cfg.mode === 'tt' && S.ghosts[cfg.track]) G.view.setGhost(S.ghosts[cfg.track].f, S.ghosts[cfg.track].look);
     r.cbs.fx = (t, x, y, z) => G.view && G.view.onFx(t, x, y, z); r.cbs.flash = (t) => onFlash(t); r.cbs.event = (k, ev) => onEvent(k, ev);
     G.state = 'race'; G.paused = false; acc = 0;
@@ -288,7 +292,7 @@ function cupScreen() {
 function options(fromPause) {
   const o = S.opts;
   show(`<div class="topBar"><button class="back" id="oBack">◀</button><h2>OPTIONS</h2></div>
-    <h3>GRAPHICS</h3>${seg('oQ', [['high', '✨ HIGH'], ['low', '⚡ LOW']], E.quality)}<div class="opt"><div>Auto quality<small>Switch to LOW if the game gets slow</small></div>${tog('oAQ', o.autoQ !== false)}</div>
+    <h3>GRAPHICS</h3>${seg('oQ', [['high', '✨ HIGH'], ['low', '⚡ LOW']], E.quality)}<div class="opt"><div>Auto sharpness<small>Never lowers graphics, only sharpens them when your phone has power to spare</small></div></div>
     <h3>STEERING</h3>${seg('oSt', [['buttons', '◀ ▶ Buttons'], ['drag', '👆 Drag'], ['tilt', '📱 Tilt']], o.steer)}
     <div class="opt"><div>Auto-accelerate<small>The kart drives itself forward, you just steer</small></div>${tog('oAuto', o.auto)}</div>
     <h3>SOUND</h3><div class="opt"><div>Sound effects</div>${tog('oSnd', o.sound)}</div><div class="opt"><div>Music</div>${tog('oMus', o.music)}</div>
@@ -296,7 +300,6 @@ function options(fromPause) {
     <button class="mbtn2 warn" id="oReset">Reset save data</button>`, 'screen options', (root) => {
     root.querySelector('#oBack').addEventListener('click', () => { S.name = (root.querySelector('#oName').value || '').replace(/[<>&"]/g, '').slice(0, 12); persist(); if (fromPause) togglePause(true); else toTitle(); });
     bindSeg(root, 'oQ', (v) => { o.quality = v; setQuality(v); persist(); });
-    bindTog(root, 'oAQ', (v) => { o.autoQ = v; E.autoQ = v; persist(); });
     bindSeg(root, 'oSt', async (v) => { o.steer = v; if (v === 'tilt') { const ok = await enableTilt(); if (!ok) toast('Tilt not available - using buttons', true); } setControlMode(v, o.auto); persist(); });
     bindTog(root, 'oAuto', (v) => { o.auto = v; setControlMode(o.steer, v); persist(); });
     bindTog(root, 'oSnd', (v) => { o.sound = v; setSound(o.sound, o.music); persist(); });

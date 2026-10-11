@@ -7,7 +7,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 
 export const E = {
-  quality: 'high', autoQ: true, fpsLog: [], lowSince: 0, frameCb: null, t: 0,
+  quality: 'high', fpsLog: [], fastT: 0, slowT: 0, frameCb: null, t: 0, pixelRatio: 1, prBase: 1, prCap: 1,
+  aoFull: /[?&]aofull=1/.test(location.search), // comparison only: old separate AO g-buffer pass
 };
 
 export function initEngine(canvas, quality) {
@@ -17,6 +18,7 @@ export function initEngine(canvas, quality) {
   r.toneMappingExposure = 1.0;
   r.shadowMap.enabled = true;
   r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.shadowMap.autoUpdate = false; // rendered ONCE per frame (render() flags it), not a 2nd time inside the AO pass
   E.renderer = r;
   E.scene = new THREE.Scene();
   E.camera = new THREE.PerspectiveCamera(62, 1, 0.3, 1600);
@@ -40,10 +42,13 @@ function buildComposer() {
   const r = E.renderer;
   if (E.composer) { E.composer.dispose(); E.composer = null; }
   if (E.quality !== 'high') return;
-  const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 });
+  // the main pass keeps its depth in a texture; AO reads it instead of drawing the whole scene again
+  const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0, depthTexture: E.aoFull ? null : new THREE.DepthTexture(1, 1) });
   const c = new EffectComposer(r, rt);
   c.addPass(new RenderPass(E.scene, E.camera));
   E.gtao = new GTAOPass(E.scene, E.camera, 1, 1);
+  if (!E.aoFull) { const ao = E.gtao; ao.setGBuffer(c.renderTarget2.depthTexture); // its own normal target is never drawn, so never allocated
+    const aoRender = ao.render; ao.render = function (rr, wb, rb, dt, mask) { const d = rb.depthTexture; if (d && this.gtaoMaterial.uniforms.tDepth.value !== d) { this.depthTexture = d; this.gtaoMaterial.uniforms.tDepth.value = d; this.pdMaterial.uniforms.tDepth.value = d; } return aoRender.call(this, rr, wb, rb, dt, mask); }; }
   E.gtao.output = GTAOPass.OUTPUT.Default;
   E.gtao.blendIntensity = 0.85;
   E.gtao.updateGtaoMaterial({ radius: 1.2, distanceExponent: 1.6, thickness: 2.0, scale: 1.0, samples: 12, distanceFallOff: 1.0 });
@@ -59,7 +64,9 @@ export function setQuality(q, init) {
   E.quality = q === 'low' ? 'low' : 'high';
   const r = E.renderer;
   const dpr = window.devicePixelRatio || 1;
-  E.pixelRatio = E.quality === 'high' ? Math.min(dpr, 2) : Math.min(dpr, 1.25) * 0.85;
+  // auto-sharpness starts at the normal default for the chosen quality and only ever goes UP from it
+  E.prBase = E.quality === 'high' ? Math.min(dpr, 2) : Math.min(dpr, 1.25) * 0.85; E.prCap = E.quality === 'high' ? Math.min(dpr, 3) : E.prBase;
+  E.pixelRatio = E.prBase;
   r.setPixelRatio(E.pixelRatio);
   r.shadowMap.enabled = true;
   r.shadowMap.type = E.quality === 'high' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
@@ -68,7 +75,7 @@ export function setQuality(q, init) {
   E.scene.traverse((o) => { if (o.material && o.material.needsUpdate !== undefined) { const m = Array.isArray(o.material) ? o.material : [o.material]; m.forEach((mm) => mm.needsUpdate = true); } });
   buildComposer();
   if (!init) resize();
-  E.fpsLog = []; E.lowSince = 0;
+  E.fpsLog = []; E.fastT = 0; E.slowT = 0;
   if (E.onQuality) E.onQuality(E.quality);
 }
 
@@ -144,16 +151,17 @@ export function followShadow(x, y, z) {
 
 export function render(dt) {
   E.t += dt;
+  E.renderer.shadowMap.needsUpdate = true;
   if (E.composer) E.composer.render(dt); else E.renderer.render(E.scene, E.camera);
 }
 
-// auto step-down: FPS < 30 for 5 seconds on HIGH -> LOW
+// never downgrades: there is no automatic switch to LOW any more (HIGH/LOW is a manual choice in Options).
+// Extra sharpness is added while the phone has headroom and handed back (never below the default) if it costs smoothness.
 export function trackFps(dt, now) {
-  if (!E.autoQ || E.quality !== 'high' || document.hidden) { E.lowSince = 0; return; }
-  E.fpsLog.push(dt); if (E.fpsLog.length > 30) E.fpsLog.shift();
-  if (E.fpsLog.length < 30) return;
-  const avg = E.fpsLog.reduce((a, b) => a + b, 0) / E.fpsLog.length;
-  const fps = 1 / avg;
-  if (fps < 30) { if (!E.lowSince) E.lowSince = now; else if (now - E.lowSince > 5000) { setQuality('low'); if (E.onAutoLow) E.onAutoLow(); } }
-  else E.lowSince = 0;
+  if (document.hidden) return;
+  E.fpsLog.push(dt); if (E.fpsLog.length > 30) E.fpsLog.shift(); if (E.fpsLog.length < 30) return;
+  const fps = E.fakeFps || 1 / (E.fpsLog.reduce((a, b) => a + b, 0) / E.fpsLog.length);
+  if (E.pixelRatio < E.prCap && fps > 57) { E.fastT += dt; if (E.fastT > 4) { E.fastT = 0; setPR(Math.min(E.prCap, E.pixelRatio + 0.25)); } } else E.fastT = Math.max(0, E.fastT - dt);
+  if (E.pixelRatio > E.prBase && fps < 45) { E.slowT += dt; if (E.slowT > 2) { E.slowT = 0; E.prCap = Math.max(E.prBase, E.pixelRatio - 0.25); setPR(E.prCap); } } else E.slowT = Math.max(0, E.slowT - dt);
 }
+function setPR(v) { if (v === E.pixelRatio) return; E.pixelRatio = v; E.renderer.setPixelRatio(v); resize(); }
