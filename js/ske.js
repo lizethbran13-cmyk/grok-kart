@@ -32,7 +32,7 @@ export function encode(frames) { // dev: 15 Hz frames -> 7.5 Hz deltas (yaw unwr
   return out;
 }
 // staff times (3 laps, seconds) baked from the recorded ghosts so menus can show medals without downloading them
-export const STAFF_T = {"city":{"t":107.43,"laps":[37.23,73.02,107.43]},"canyon":{"t":115.38,"laps":[37.98,77.08,115.38]},"candy":{"t":91.38,"laps":[30.32,59.85,91.38]},"beach":{"t":107.03,"laps":[36.57,71.25,107.03]},"castle":{"t":108.48,"laps":[37.07,70.6,108.48]},"frost":{"t":111.17,"laps":[36.65,73.67,111.17]},"lava":{"t":106.92,"laps":[36.42,71.47,106.92]},"space":{"t":103.73,"laps":[37.23,69.53,103.73]},"ratlab":{"t":139.1,"laps":[45,94.8,139.1]},"garden":{"t":121.88,"laps":[40.68,81.75,121.88]}};
+export const STAFF_T = {"city":{"t":103.55,"laps":[36.48,70.8,103.55]},"canyon":{"t":113.63,"laps":[37.73,75.32,113.63]},"candy":{"t":96.32,"laps":[31.2,66.22,96.32]},"beach":{"t":93.3,"laps":[30.93,61.58,93.3]},"castle":{"t":90.58,"laps":[32.77,61.92,90.58]},"frost":{"t":110.53,"laps":[36.55,75.85,110.53]},"lava":{"t":106.72,"laps":[36.67,73.2,106.72]},"space":{"t":94.25,"laps":[31.68,62.95,94.25]},"ratlab":{"t":128.48,"laps":[44.47,86.87,128.48]},"garden":{"t":121.68,"laps":[42.02,81.43,121.68]}};
 export function medalFor(id, t) { const st = STAFF_T[id] && STAFF_T[id].t; if (!st || !t) return 0; for (let m = 4; m >= 1; m--) if (t <= st * MEDALS[m].f + 1e-6) return m; return 0; }
 export function medalTarget(id, m) { const st = STAFF_T[id] && STAFF_T[id].t; return st ? st * MEDALS[m].f : null; }
 

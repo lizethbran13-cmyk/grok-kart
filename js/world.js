@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { sweep, runs, SH, pointAt } from './track.js';
 import { THEMES, roadMaterial, groundMaterial, vcMaterial } from './themes.js';
-import { prop } from './props.js';
+import { prop, propLow } from './props.js';
 import { Builder, P, lathe, blob } from './geo.js';
 import { rng, canvasTex } from './util.js';
 
@@ -116,7 +116,11 @@ function instances(W, name, list, opts = {}) {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3(), c = new THREE.Color();
   list.forEach((it, k) => { e.set(it.rx || 0, it.ry || 0, it.rz || 0); q.setFromEuler(e); m.compose(v.set(it.x, it.y, it.z), q, s.set(it.s, it.sy || it.s, it.s)); im.setMatrixAt(k, m); if (it.c != null) im.setColorAt(k, c.set(it.c)); });
   im.castShadow = opts.shadow !== false; im.receiveShadow = true; im.frustumCulled = true; im.computeBoundingSphere();
-  W.grp.add(im); return im;
+  W.grp.add(im);
+  if (opts.lod) { // far-only LOD twin: starts empty, decorCull moves far instances into it
+    const lo = new THREE.InstancedMesh(propLow(name), im.material, list.length); lo.count = 0; lo.castShadow = im.castShadow; lo.receiveShadow = true; lo.frustumCulled = false;
+    if (im.instanceColor) lo.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(list.length * 3), 3); im.userData.lod = lo; W.grp.add(lo); }
+  return im;
 }
 
 function decorate(W, D, T, th, R, quality, add, baseY) {
@@ -177,34 +181,34 @@ function decorate(W, D, T, th, R, quality, add, baseY) {
       W.anim.push((dt, t) => { lava.material.uniforms.t.value = t; }); break; }
     case 'lab': { // Ratita Labs: science campus, cheese silos, neon arches
       const tint = [0xffffff, 0xe0f7ff, 0xffe9f5, 0xfff6cc, 0xe9e3ff];
-      const tw = scatter(N(46), edge + 16, edge + 80); tw.forEach((p) => { p.s = 9 + R() * 6; p.sy = 18 + R() * 42; p.c = tint[(R() * 5) | 0]; p.ry = Math.round(p.ry / (PI / 2)) * PI / 2; }); instances(W, 'labtower', tw, { gloss: true });
+      const tw = scatter(N(46), edge + 16, edge + 80); tw.forEach((p) => { p.s = 9 + R() * 6; p.sy = 18 + R() * 42; p.c = tint[(R() * 5) | 0]; p.ry = Math.round(p.ry / (PI / 2)) * PI / 2; }); instances(W, 'labtower', tw, { gloss: true, lod: 1 });
       const face = (l) => l.map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; });
-      instances(W, 'labdome', sz(face(scatter(N(10), edge + 14, edge + 50)), 0.8, 1.25), { gloss: true });
-      instances(W, 'cheesesilo', sz(scatter(N(24), edge + 6, edge + 36), 0.8, 1.3), { gloss: true });
-      instances(W, 'testtube', sz(scatter(N(48), edge, edge + 12), 0.8, 1.4), { gloss: true });
-      instances(W, 'tesla', sz(scatter(N(22), edge + 1, edge + 18), 0.85, 1.25), { gloss: true });
-      instances(W, 'ratstatue', sz(face(scatter(N(5), edge + 10, edge + 30)), 0.9, 1.2), { gloss: true });
-      instances(W, 'robotarm', sz(scatter(N(26), edge, edge + 10), 0.9, 1.3), { gloss: true });
-      instances(W, 'dish', sz(scatter(N(10), edge + 4, edge + 30), 1.0, 1.6), { gloss: true });
-      instances(W, 'cheesewheel', sz(scatter(N(46), edge, edge + 16), 0.7, 1.4), { gloss: true });
-      instances(W, 'labcrate', sz(scatter(N(56), edge, edge + 12), 0.8, 1.4), { gloss: true });
-      instances(W, 'neonpost', face(scatter(N(54), hw + SH + 1.2, hw + SH + 1.8)), { gloss: true });
-      instances(W, 'bush', scatter(N(70), edge, edge + 22).map((p) => Object.assign(p, { c: [0x7cf7d4, 0xffb3e0, 0xb9a8ff][(R() * 3) | 0] })), {});
+      instances(W, 'labdome', sz(face(scatter(N(10), edge + 14, edge + 50)), 0.8, 1.25), { gloss: true, lod: 1 });
+      instances(W, 'cheesesilo', sz(scatter(N(30), edge + 6, edge + 36), 0.8, 1.3), { gloss: true, lod: 1 });
+      instances(W, 'testtube', sz(scatter(N(90), edge - 1, edge + 8), 0.9, 1.5), { gloss: true, lod: 1 });
+      instances(W, 'tesla', sz(scatter(N(32), edge + 1, edge + 18), 0.85, 1.25), { gloss: true, lod: 1 });
+      instances(W, 'ratstatue', sz(face(scatter(N(5), edge + 10, edge + 30)), 0.9, 1.2), { gloss: true, lod: 1 });
+      instances(W, 'robotarm', sz(scatter(N(40), edge, edge + 8), 1.0, 1.5), { gloss: true, lod: 1 });
+      instances(W, 'dish', sz(scatter(N(10), edge + 4, edge + 30), 1.0, 1.6), { gloss: true, lod: 1 });
+      instances(W, 'cheesewheel', sz(scatter(N(90), edge - 1, edge + 10), 0.8, 1.6), { gloss: true, lod: 1 });
+      instances(W, 'labcrate', sz(scatter(N(100), edge - 1, edge + 7), 0.9, 1.5), { gloss: true, lod: 1 });
+      instances(W, 'neonpost', face(scatter(N(80), hw + SH + 1.2, hw + SH + 1.8)), { gloss: true, lod: 1 });
+      instances(W, 'bush', scatter(N(120), edge - 1, edge + 14).map((p) => Object.assign(p, { c: [0x7cf7d4, 0xffb3e0, 0xb9a8ff][(R() * 3) | 0] })), { lod: 1 });
       instances(W, 'labtowerFar', ring(N(44), 70, 260).map((p) => Object.assign(p, { s: 16 + R() * 14, sy: 40 + R() * 100, c: [0xd7ccff, 0xffd1ec, 0xc7f5ff][(R() * 3) | 0] })), { shadow: false });
       neonArches(W, D, hw); clouds(0xffd6f0, 12); break; }
     case 'garden': { // Torty's Garden: giant sunflowers, veggies, picket fences, a Torty topiary
-      instances(W, 'sunflower', sz(scatter(N(120), edge, edge + 28), 0.85, 1.45), {});
-      instances(W, 'mushroom', sz(scatter(N(40), edge + 1, edge + 24), 0.8, 1.7), { gloss: true });
-      instances(W, 'carrot', sz(scatter(N(36), edge, edge + 18), 0.8, 1.4), {}); instances(W, 'lettuce', sz(scatter(N(46), edge, edge + 16), 0.8, 1.5), {});
-      instances(W, 'flowerbed', sz(scatter(N(70), edge, edge + 14), 0.8, 1.3), {}); instances(W, 'gnome', sz(scatter(N(22), edge, edge + 14).map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; }), 1.0, 1.5), { gloss: true });
-      instances(W, 'fence', scatter(N(60), edge - 1.2, edge - 0.4).map((p) => { p.ry = Math.atan2(-D.TZ[p.i], D.TX[p.i]); return p; }), {});
-      instances(W, 'greenhouse', sz(scatter(N(4), edge + 16, edge + 40), 1.0, 1.3), { gloss: true });
-      instances(W, 'topiary', sz(scatter(N(5), edge + 8, edge + 28).map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; }), 1.0, 1.4), {});
-      instances(W, 'wateringcan', sz(scatter(N(7), edge + 6, edge + 30), 1.6, 2.6), { gloss: true }); instances(W, 'potplant', sz(scatter(N(26), edge, edge + 14), 0.8, 1.3), { gloss: true });
-      instances(W, 'butterflies', scatter(N(26), edge, edge + 20).map((p) => Object.assign(p, { y: p.y + R() * 2 })), { shadow: false });
-      instances(W, 'tree', sz(scatter(N(40), edge + 10, edge + 50), 1.0, 1.6), {}); instances(W, 'bush', sz(scatter(N(70), edge, edge + 22), 0.8, 1.4), {});
-      instances(W, 'hill', ring(N(30), 40, 240).map((p) => Object.assign(p, { s: 50 + R() * 50, sy: 18 + R() * 30 })), { shadow: false });
-      instances(W, 'sunflower', ring(N(24), 20, 60).map((p) => Object.assign(p, { s: 3 + R() * 2 })), { shadow: false });
+      instances(W, 'sunflower', sz(scatter(N(160), edge, edge + 22), 1.1, 1.9), { lod: 1 });
+      instances(W, 'mushroom', sz(scatter(N(64), edge, edge + 18), 1.1, 2.3), { gloss: true, lod: 1 });
+      instances(W, 'carrot', sz(scatter(N(70), edge - 1, edge + 10), 1.1, 1.9), { lod: 1 }); instances(W, 'lettuce', sz(scatter(N(80), edge - 1, edge + 9), 1.1, 1.9), { lod: 1 });
+      instances(W, 'flowerbed', sz(scatter(N(130), edge - 1.5, edge + 8), 0.9, 1.4), { lod: 1 }); instances(W, 'gnome', sz(scatter(N(34), edge, edge + 14).map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; }), 1.0, 1.5), { gloss: true, lod: 1 });
+      instances(W, 'fence', scatter(N(110), edge - 1.2, edge - 0.4).map((p) => { p.ry = Math.atan2(-D.TZ[p.i], D.TX[p.i]); return p; }), { lod: 1 });
+      instances(W, 'greenhouse', sz(scatter(N(4), edge + 16, edge + 40), 1.0, 1.3), { gloss: true, lod: 1 });
+      instances(W, 'topiary', sz(scatter(N(5), edge + 8, edge + 28).map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; }), 1.0, 1.4), { lod: 1 });
+      instances(W, 'wateringcan', sz(scatter(N(7), edge + 6, edge + 30), 1.6, 2.6), { gloss: true, lod: 1 }); instances(W, 'potplant', sz(scatter(N(44), edge - 1, edge + 8), 1.0, 1.5), { gloss: true, lod: 1 });
+      instances(W, 'butterflies', scatter(N(26), edge, edge + 20).map((p) => Object.assign(p, { y: p.y + R() * 2 })), { shadow: false, lod: 1 });
+      instances(W, 'tree', sz(scatter(N(40), edge + 10, edge + 50), 1.0, 1.6), { lod: 1 }); instances(W, 'bush', sz(scatter(N(110), edge - 1, edge + 14), 0.9, 1.5), { lod: 1 });
+      instances(W, 'hill', ring(N(30), 120, 320).map((p) => Object.assign(p, { s: 45 + R() * 40, sy: 16 + R() * 24 })), { shadow: false });
+      instances(W, 'sunflower', ring(N(24), 40, 90).map((p) => Object.assign(p, { s: 3 + R() * 2 })), { shadow: false, lod: 1 });
       clouds(); break; }
     case 'space': {
       instances(W, 'asteroid', scatter(N(70), edge, edge + 60, 'float').map((p) => Object.assign(p, { s: 1.5 + R() * 4, rx: R() * 6, rz: R() * 6 })), {});

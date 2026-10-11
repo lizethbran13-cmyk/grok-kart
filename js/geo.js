@@ -7,6 +7,7 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Eule
 export class Builder {
   constructor() { this.parts = []; }
   add(geom, color, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = sx, sz = sx, emissive = 0) {
+    if (LOW.on && LOWMAP.has(geom)) geom = LOWMAP.get(geom);
     let g = geom.index ? geom.toNonIndexed() : geom.clone();
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     if (!g.attributes.normal) g.computeVertexNormals();
@@ -53,3 +54,7 @@ export function blob(seed, amp = 0.18, detail = 2) {
   g.computeVertexNormals(); return g;
 }
 export { RoundedBoxGeometry };
+// far-only LOD: while LOW.on, shared primitives are swapped for low-segment twins (used only for far-away decor copies)
+export const LOW = { on: false };
+export const LOWMAP = new Map([[P.sphere, new THREE.SphereGeometry(1, 9, 6)], [P.sphereLo, new THREE.SphereGeometry(1, 8, 5)], [P.cyl, new THREE.CylinderGeometry(1, 1, 1, 8, 1)], [P.cone, new THREE.ConeGeometry(1, 1, 8, 1)],
+  [P.torus, new THREE.TorusGeometry(1, 0.3, 5, 10)], [P.capsule, new THREE.CapsuleGeometry(0.5, 1, 2, 7)], [P.rbox, new THREE.BoxGeometry(1, 1, 1)], [P.rboxS, new THREE.BoxGeometry(1, 1, 1)]]);
