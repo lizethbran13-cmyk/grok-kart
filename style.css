@@ -171,3 +171,26 @@ body.steer-tilt #tSteer{display:none}
 .tst{background:rgba(20,10,60,.9);border:3px solid #fff;border-radius:999px;padding:8px 16px;font-weight:900;font-size:14px;transition:opacity .4s;max-width:90vw;text-align:center}
 .tst.bad{border-color:#ff7a9a}.tst.out{opacity:0}
 @media (orientation:landscape){ .menuGrid{grid-template-columns:repeat(3,1fr);max-width:720px}.mbtn.big{grid-column:span 3} #hMap{top:auto;bottom:calc(env(safe-area-inset-bottom) + 130px);right:auto;left:12px} .logo .l1{font-size:46px}.logo .l2{font-size:26px} }
+/* ---- Super Kart Expansion ---- */
+.th-lab{background:linear-gradient(160deg,#8a63ff,#22e5ff)}.th-garden{background:linear-gradient(160deg,#ffd43b,#40c057)}
+.trk.dlc,.card.dlc,.cup.dlc{position:relative}
+.trk.dlc::after,.card.dlc::after,.cup.dlc::after{content:'🐀 DLC';position:absolute;top:5px;right:6px;font-size:9px;font-weight:900;background:#1e1b4b;color:#ffe14d;border-radius:8px;padding:2px 5px;border:1.5px solid #ffe14d}
+.trk.locked,.cup.locked{filter:grayscale(.65) brightness(.85)}
+.cup.dlc{background:linear-gradient(160deg,#c4b5fd,#22e5ff);color:#1e1b4b;grid-column:1/-1}
+.dlcRibbon{margin:10px auto 0;width:max-content;padding:6px 14px;border-radius:14px;background:linear-gradient(90deg,#1e1b4b,#5b21b6);color:#ffe14d;font-weight:900;font-size:12px;border:2px solid #ffe14d;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.dlcTease{color:#ffe14d;font-weight:900}
+.ttTabs button{font-size:12px}
+.trk .medal{position:absolute;top:4px;left:7px;font-size:22px;filter:drop-shadow(0 2px 1px rgba(0,0,0,.35))}
+.ttHub .trk{position:relative;min-height:92px}
+.trk .nextM{opacity:.95;font-size:10px}
+.ladder{display:flex;flex-direction:column;gap:7px}
+.rung{display:flex;align-items:center;gap:8px;text-align:left;padding:7px 10px;border-radius:16px;background:rgba(255,255,255,.18);border:2.5px solid rgba(255,255,255,.55);box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.rung .rn{width:28px;height:28px;flex:none;border-radius:50%;background:#1e1b4b;color:#ffe14d;display:flex;align-items:center;justify-content:center;font-weight:900}
+.rung img{width:44px;height:44px;flex:none;object-fit:contain;border-radius:12px;background:rgba(255,255,255,.35)}
+.rung .ri{flex:1;display:flex;flex-direction:column;min-width:0}.rung .ri b{font-size:13px;font-weight:900}.rung .ri small{font-size:11px;font-weight:800;opacity:.9}
+.rung .rs{font-weight:900;font-size:13px;flex:none}
+.rung.cur{background:linear-gradient(90deg,#ffe14d,#ff8a1f);color:#4a2300;border-color:#fff;animation:rungP 1.4s ease-in-out infinite}
+.rung.done{background:rgba(46,232,109,.35)}.rung.locked{opacity:.55}.rung.boss .rn{background:#ff3b5c;color:#fff}
+@keyframes rungP{50%{transform:scale(1.02)}}
+#hTarget{font-size:12px;color:#ffe14d;text-shadow:0 2px 3px rgba(0,0,0,.6);font-variant-numeric:tabular-nums}
+.newRec.medalWon{color:#fff}.newRec.champ{color:#ff4fd8}

@@ -19,6 +19,11 @@ export const THEMES = {
     road: 'basalt', curb: [0xffd000, 0x262626], ground: 'ash', wall: [0xff6a00, 0x3f3f46], decor: 'volcano' },
   space: { env: { skyTop: 0x0a0630, skyMid: 0x2a1a7a, skyBot: 0x6a2aa0, fog: 0x2a1a6a, fogD: 0.0012, sunDir: [0.4, 0.7, 0.3], sunColor: 0xe8e0ff, sunI: 2.2, hemiSky: 0xb8a8ff, hemiGround: 0x4a2a8a, hemiI: 1.1, exposure: 1.1, stars: 1.2, nebula: 0xff4fd8, envI: 1.0, envLight: 0xc0b0ff },
     road: 'neon', curb: [0x00e5ff, 0xff4fd8], ground: null, wall: [0x00e5ff, 0xff4fd8], decor: 'space' },
+  // Super Kart Expansion
+  lab: { env: { skyTop: 0x2b2a9e, skyMid: 0x8a63ff, skyBot: 0xffb3d1, fog: 0xc79cff, fogD: 0.0016, sunDir: [-0.45, 0.62, 0.45], sunColor: 0xffe2c8, sunI: 2.3, hemiSky: 0xd8ccff, hemiGround: 0x5fd0b0, hemiI: 1.1, exposure: 1.06, sunDisc: 0.8, stars: 0.25, envI: 1.0, envLight: 0xe0d0ff, clouds: 0xffd6f0 },
+    road: 'labroad', curb: [0xffd60a, 0x1e1b4b], ground: 'labfloor', wall: [0x22e5ff, 0xffd60a], decor: 'lab' },
+  garden: { env: { skyTop: 0x1c8bff, skyMid: 0x86dcff, skyBot: 0xfff0c2, fog: 0xc9f0ff, fogD: 0.0012, sunDir: [0.55, 0.78, 0.25], sunColor: 0xfff0cc, sunI: 2.5, hemiSky: 0xe6f8ff, hemiGround: 0x7fd36a, hemiI: 1.1, exposure: 1.05, sunDisc: 1, envI: 0.95, clouds: 0xffffff },
+    road: 'brick', curb: [0xff7a1a, 0xfff7e0], ground: 'lawn', wall: [0x22c55e, 0xff7ab6], decor: 'garden' },
 };
 
 // heightmap canvas -> tangent-space normal map
@@ -79,6 +84,20 @@ export function roadMaterial(style) {
     const em = heightCanvas(S, (g) => { g.fillStyle = '#000'; g.fillRect(0, 0, S, S); drawCr(g, '#ff6a00', 5); });
     emis = new THREE.CanvasTexture(em); emis.wrapS = emis.wrapT = THREE.RepeatWrapping; emis.colorSpace = THREE.SRGBColorSpace;
     hgt = heightCanvas(S, (g) => { noiseFill(g, S, '#909090', 1.0, 9000, 3, R); drawCr(g, '#202020', 5); }); rough = 0.85;
+  } else if (style === 'labroad') { // smooth lab-floor asphalt with glowing lane lights + hazard stripes
+    const draw = (g, glow) => { if (!glow) { noiseFill(g, S, '#3b3f5c', 0.35, 7000, 3, R); g.fillStyle = 'rgba(255,255,255,0.05)'; for (let y = 0; y < S; y += S / 4) g.fillRect(0, y, S, 3); } else { g.fillStyle = '#000'; g.fillRect(0, 0, S, S); }
+      for (let y = 0; y < S; y += 32) { g.fillStyle = (y / 32) % 2 ? '#ffd60a' : (glow ? '#000' : '#1e1b4b'); g.fillRect(0, y, S * 0.035, 32); g.fillRect(S * 0.965, y, S * 0.035, 32); }
+      g.fillStyle = '#22e5ff'; g.fillRect(S * 0.05, 0, S * 0.012, S); g.fillRect(S * 0.938, 0, S * 0.012, S);
+      for (let y = 0; y < S; y += S / 2) { g.fillStyle = '#ff4fd8'; g.fillRect(S * 0.32, y + S * 0.1, S * 0.012, S * 0.22); g.fillRect(S * 0.668, y + S * 0.1, S * 0.012, S * 0.22); } };
+    color = heightCanvas(S, (g) => draw(g, false));
+    const em = heightCanvas(S, (g) => draw(g, true));
+    emis = new THREE.CanvasTexture(em); emis.wrapS = emis.wrapT = THREE.RepeatWrapping; emis.colorSpace = THREE.SRGBColorSpace;
+    hgt = heightCanvas(S, (g) => noiseFill(g, S, '#808080', 0.8, 9000, 2, R)); rough = 0.45; metal = 0.15;
+  } else if (style === 'brick') { // warm terracotta garden-path bricks
+    const bricks = []; for (let y = 0; y < S; y += 32) for (let x = -32; x < S + 32; x += 64) bricks.push([x + ((y / 32) % 2) * 32, y, R()]);
+    color = heightCanvas(S, (g) => { g.fillStyle = '#c9b48a'; g.fillRect(0, 0, S, S); bricks.forEach(([x, y, r]) => { g.fillStyle = `hsl(${12 + r * 16},${55 + r * 15}%,${50 + r * 10}%)`; g.fillRect(x + 2, y + 2, 60, 28); g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(x + 4, y + 4, 56, 5); });
+      g.fillStyle = '#fff7e0'; g.fillRect(0, 0, S * 0.03, S); g.fillRect(S * 0.97, 0, S * 0.03, S); });
+    hgt = heightCanvas(S, (g) => { g.fillStyle = '#303030'; g.fillRect(0, 0, S, S); bricks.forEach(([x, y]) => { g.fillStyle = '#b0b0b0'; g.fillRect(x + 2, y + 2, 60, 28); }); }); rough = 0.75;
   } else if (style === 'neon') {
     color = heightCanvas(S, (g) => { g.fillStyle = '#1b1450'; g.fillRect(0, 0, S, S); g.strokeStyle = '#3b2f9a'; g.lineWidth = 2; for (let x = 0; x <= S; x += S / 8) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, S); g.stroke(); } for (let y = 0; y <= S; y += S / 4) { g.beginPath(); g.moveTo(0, y); g.lineTo(S, y); g.stroke(); } g.fillStyle = '#00e5ff'; g.fillRect(0, 0, S * 0.04, S); g.fillStyle = '#ff4fd8'; g.fillRect(S * 0.96, 0, S * 0.04, S); g.fillStyle = '#ffffff'; for (let y = 0; y < S; y += S / 2) g.fillRect(S * 0.49, y, S * 0.02, S * 0.25); });
     const em = heightCanvas(S, (g) => { g.fillStyle = '#000'; g.fillRect(0, 0, S, S); g.fillStyle = '#00e5ff'; g.fillRect(0, 0, S * 0.04, S); g.fillStyle = '#ff4fd8'; g.fillRect(S * 0.96, 0, S * 0.04, S); g.strokeStyle = '#4433bb'; g.lineWidth = 2; for (let y = 0; y <= S; y += S / 4) { g.beginPath(); g.moveTo(0, y); g.lineTo(S, y); g.stroke(); } g.fillStyle = '#ffffff'; for (let y = 0; y < S; y += S / 2) g.fillRect(S * 0.49, y, S * 0.02, S * 0.25); });
@@ -105,6 +124,8 @@ export function groundMaterial(style) {
     spookgrass: ['#3e8f6a', 0.35, (g) => { for (let i = 0; i < 2500; i++) { g.fillStyle = R() < 0.5 ? 'rgba(20,60,50,0.4)' : 'rgba(140,220,170,0.25)'; g.fillRect(R() * S, R() * S, 2, 6); } }, 0.95],
     snow: ['#e2f0ff', 0.14, (g) => { for (let i = 0; i < 60; i++) { g.fillStyle = 'rgba(160,200,255,0.18)'; g.beginPath(); g.ellipse(R() * S, R() * S, 20 + R() * 40, 8 + R() * 14, R() * 3, 0, 7); g.fill(); } }, 0.6],
     ash: ['#5b4652', 0.4, (g) => { for (let i = 0; i < 30; i++) { g.strokeStyle = 'rgba(255,110,30,0.35)'; g.lineWidth = 2; g.beginPath(); let x = R() * S, y = R() * S; g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (R() - 0.5) * 60; y += (R() - 0.5) * 60; g.lineTo(x, y); } g.stroke(); } }, 0.9],
+    lawn: ['#58d14e', 0.3, (g) => { for (let i = 0; i < 3200; i++) { g.fillStyle = R() < 0.5 ? 'rgba(30,150,40,0.35)' : 'rgba(200,255,130,0.3)'; g.fillRect(R() * S, R() * S, 2, 7); } for (let x = 0; x < S; x += 64) { g.fillStyle = 'rgba(255,255,255,0.05)'; g.fillRect(x, 0, 32, S); } for (let i = 0; i < 70; i++) { g.fillStyle = ['#fff', '#ffe14d', '#ff7ab6', '#b26bff', '#ff8a1f'][(R() * 5) | 0]; g.beginPath(); g.arc(R() * S, R() * S, 3.5, 0, 7); g.fill(); } }, 0.92],
+    labfloor: ['#6fe3c4', 0.16, (g) => { for (let y = 0; y < S; y += 64) for (let x = 0; x < S; x += 64) { g.fillStyle = (x + y) % 128 ? 'rgba(255,255,255,0.10)' : 'rgba(40,60,200,0.08)'; g.fillRect(x + 3, y + 3, 58, 58); } g.fillStyle = 'rgba(255,255,255,0.55)'; for (let k = 0; k < S; k += 64) { g.fillRect(k, 0, 2, S); g.fillRect(0, k, S, 2); } for (let i = 0; i < 24; i++) { g.fillStyle = 'rgba(255,214,10,0.5)'; const x = ((R() * 8) | 0) * 64, y = ((R() * 8) | 0) * 64; g.fillRect(x + 28, y + 28, 8, 8); } }, 0.5],
     dirt: ['#b8834f', 0.45, (g) => { for (let i = 0; i < 400; i++) { g.fillStyle = 'rgba(90,50,20,0.3)'; g.beginPath(); g.arc(R() * S, R() * S, 1 + R() * 3, 0, 7); g.fill(); } }, 0.95],
   }[style];
   const map = canvasTex('g_' + style, S, (g) => { noiseFill(g, S, P[0], P[1], 12000, 3, R); P[2](g); });

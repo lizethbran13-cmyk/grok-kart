@@ -10,6 +10,11 @@ export const CHARS = [
   { id: 'boo', n: 'Boolin', d: 'A giggly little ghost', w: 'light', col: '#e0e7ff', col2: '#818cf8', price: 120, kind: 'ghost', stat: { spd: 3, acc: 4, han: 3, wt: 1 } },
   { id: 'cocoa', n: 'Cocoa', d: 'Bunny with lightning hops', w: 'light', col: '#a16207', col2: '#fda4af', price: 90, kind: 'bunny', stat: { spd: 2, acc: 5, han: 3, wt: 2 } },
   { id: 'bolt', n: 'Captain Bolt', d: 'Retired stunt racer', w: 'heavy', col: '#2563eb', col2: '#facc15', price: 150, kind: 'captain', stat: { spd: 5, acc: 2, han: 2, wt: 4 } },
+  // Super Kart Expansion (DLC): the Ratita crew + Candy
+  { id: 'luna', n: 'Luna', d: 'Ratita Industries star scientist', w: 'light', col: '#a9afbd', col2: '#7d8394', price: 0, dlc: 1, kind: 'rat', rat: 'luna', stat: { spd: 3, acc: 4, han: 4, wt: 1 } },
+  { id: 'pirat', n: 'Pi-rat', d: 'Captain of the high-speed seas', w: 'medium', col: '#c99a6b', col2: '#9c7148', price: 0, dlc: 1, kind: 'rat', rat: 'pirat', stat: { spd: 4, acc: 3, han: 3, wt: 3 } },
+  { id: 'snowie', n: 'Snowie', d: 'Snow-white rat, ice-cold drifts', w: 'light', col: '#fbfbff', col2: '#e3e1ee', price: 0, dlc: 1, kind: 'rat', rat: 'snowie', stat: { spd: 2, acc: 5, han: 4, wt: 1 } },
+  { id: 'candy', n: 'Candy', d: 'Schnauzer with zoomies', w: 'heavy', col: '#8a8d96', col2: '#e8e8ec', price: 0, dlc: 1, kind: 'schnauzer', stat: { spd: 5, acc: 2, han: 3, wt: 4 } },
 ];
 export const BODIES = [
   { id: 'classic', n: 'Classic', price: 0, stat: { spd: 0, acc: 0, han: 0, wt: 0 } },
@@ -114,10 +119,24 @@ export const TRACKS = [
     ramps: [{ u: 0.62, off: 0, w: 0.5 }], items: [0.1, 0.3, 0.46, 0.68, 0.88], coins: [{ u: 0.15, off: 0, n: 7 }, { u: 0.55, off: 0.3, n: 6 }],
     hazards: [{ type: 'ufo', u: 0.27 }, { type: 'ufo', u: 0.72 }, { type: 'sweeper', u: 0.92 }],
     shortcuts: [] },
+  // ---- Super Kart Expansion (DLC) ----
+  { id: 'ratlab', n: 'Ratita Labs Raceway', cup: 2, dlc: 1, theme: 'lab', width: 16, laps: 3, scale: 1.25,
+    pts: [[0,0,2],[70,0,2],[130,-15,4],[175,-50,8],[230,-45,12],[255,0,14],[240,50,14],[200,70,12],[170,110,10],[200,150,10],[190,195,12],[140,215,14],[90,190,12],[60,145,8],[20,165,6],[-20,205,8],[-75,205,10],[-110,165,8],[-100,115,6],[-140,80,4],[-150,35,4],[-100,5,2]],
+    boosts: [{ u: 0.05, off: 0 }, { u: 0.24, off: 0.35 }, { u: 0.24, off: -0.35 }, { u: 0.5, off: 0 }, { u: 0.79, off: -0.3 }], glide: [{ u: 0.6 }], gaps: [[0.615, 0.665]],
+    ramps: [{ u: 0.36, off: 0, w: 0.55 }, { u: 0.9, off: 0.3, w: 0.4 }], items: [0.1, 0.3, 0.46, 0.7, 0.88], coins: [{ u: 0.16, off: 0, n: 7 }, { u: 0.55, off: -0.4, n: 6 }, { u: 0.74, off: 0.35, n: 6 }],
+    hazards: [{ type: 'robot', u: 0.2 }, { type: 'sweeper', u: 0.42 }, { type: 'robot', u: 0.72 }, { type: 'cheese', u: 0.84, off: -0.45 }, { type: 'cheese', u: 0.85, off: 0.45 }],
+    shortcuts: [{ u0: 0.4, u1: 0.48, bulge: 0, boost: true }] },
+  { id: 'garden', n: "Torty's Garden Grand Prix", cup: 2, dlc: 1, theme: 'garden', width: 17, laps: 3, scale: 1.25,
+    pts: [[0,0,0],[80,0,0],[150,10,2],[200,45,4],[205,95,6],[165,125,4],[120,110,2],[85,130,2],[90,175,4],[130,195,6],[140,240,8],[95,270,8],[30,260,6],[-20,230,4],[-30,180,2],[-80,160,2],[-130,180,4],[-175,150,4],[-180,90,2],[-140,40,0],[-75,10,0]],
+    boosts: [{ u: 0.07, off: 0 }, { u: 0.33, off: -0.35 }, { u: 0.56, off: 0.35 }, { u: 0.86, off: 0 }], glide: [],
+    ramps: [{ u: 0.18, off: 0, w: 0.55 }, { u: 0.47, off: -0.25, w: 0.45 }, { u: 0.72, off: 0.25, w: 0.45 }], items: [0.12, 0.36, 0.6, 0.83], coins: [{ u: 0.22, off: 0.4, n: 7 }, { u: 0.5, off: 0, n: 6 }, { u: 0.78, off: -0.4, n: 6 }],
+    hazards: [{ type: 'snail', u: 0.26 }, { type: 'tomato', u: 0.42 }, { type: 'snail', u: 0.64 }, { type: 'tomato', u: 0.92 }, { type: 'pot', u: 0.55, off: 0.5 }, { type: 'pot', u: 0.15, off: -0.5 }],
+    shortcuts: [{ u0: 0.77, u1: 0.85, bulge: 0, boost: true }] },
 ];
 export const CUPS = [
   { id: 'sunny', n: 'Sunny Cup', ic: '🌞', tracks: ['city', 'canyon', 'candy', 'beach'] },
   { id: 'star', n: 'Star Cup', ic: '⭐', tracks: ['castle', 'frost', 'lava', 'space'] },
+  { id: 'ratita', n: 'Ratita Cup', ic: '🐀', dlc: 1, tracks: ['ratlab', 'city', 'garden', 'space'] },
 ];
 export const ARENAS = [
   { id: 'plaza', n: 'Block Party Plaza', theme: 'city', size: 70, shape: 'square', obstacles: [[0, 0, 9], [-35, -35, 5], [35, -35, 5], [-35, 35, 5], [35, 35, 5]], ramps: [[0, -24, 0], [0, 24, Math.PI]] },
@@ -127,3 +146,9 @@ export const GP_POINTS = [15, 12, 10, 8, 6, 4, 2, 1];
 export const RACERS = 8;
 export const trackById = (id) => TRACKS.find((t) => t.id === id);
 export const charById = (id) => CHARS.find((c) => c.id === id) || CHARS[0];
+
+// ---- DLC gate: Super Kart Expansion (bought in the Grok Arcade DLC Shop). Online guests borrow the host's copy.
+export const DLC_KEY = 'grokDLC.kart.super_kart_expansion';
+export const DLC = { hostShare: false, owned() { try { if (localStorage.getItem(DLC_KEY)) return true; const l = JSON.parse(localStorage.getItem('grokDLC.owned') || '[]'); if (Array.isArray(l) && l.includes(DLC_KEY)) return true; } catch (e) {} return false; },
+  ok() { return DLC.owned() || DLC.hostShare; } };
+export const isDlc = (x) => !!(x && x.dlc);

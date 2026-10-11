@@ -35,6 +35,14 @@ function models() {
   M.ball = prop('beachball');
   { const b = new Builder(); b.add(P.sphere, 0xff3b3b, 0, 0.6, 0, 0, 0, 0, 1.0, 0.55, 0.8); [-1, 1].forEach((s) => { b.add(P.sphere, 0xff3b3b, s * 1.25, 0.8, 0.5, 0, 0, 0, 0.45, 0.35, 0.3); b.add(P.cyl, 0xff3b3b, s * 0.7, 0.7, 0.5, 0, 0, s * 1.0, 0.1, 0.6, 0.1); b.add(P.cyl, 0x111111, s * 0.25, 1.2, 0.4, 0, 0, 0, 0.04, 0.4, 0.04); b.add(P.sphere, 0xffffff, s * 0.25, 1.45, 0.4, 0, 0, 0, 0.14); b.add(P.sphere, 0x111111, s * 0.25, 1.47, 0.52, 0, 0, 0, 0.06); for (let i = 0; i < 3; i++) b.add(P.cyl, 0xd12b2b, s * (0.8 + i * 0.1), 0.3, -0.3 + i * 0.3, 0, 0, s * 0.8, 0.07, 0.6, 0.07); }); M.crab = b.build(); }
   { const b = new Builder(); b.add(lathe([[0, 1.6], [0.6, 1.45], [0.85, 0.9], [0.9, 0.2], [0.75, 0.0], [0.55, 0.15], [0.35, 0.0], [0.0, 0.1]], 32), 0xf3f0ff); [-0.28, 0.28].forEach((x) => b.add(P.sphere, 0x1e1b4b, x, 1.1, 0.72, 0, 0, 0, 0.12, 0.18, 0.08)); b.add(P.sphere, 0x1e1b4b, 0, 0.75, 0.78, 0, 0, 0, 0.18, 0.22, 0.08); M.ghost = b.build(); }
+  // Super Kart Expansion hazards
+  { const b = new Builder(); b.addFn(P.sphere, (c, x, y) => c.set(y > 0.85 ? 0xff6b6b : 0xf03e3e), 0, 0, 0, 0, 0, 0, 1.5, 1.35, 1.5); for (let i = 0; i < 5; i++) { const a = i / 5 * PI * 2; b.add(P.sphere, 0x2f9e44, Math.cos(a) * 0.4, 1.32, Math.sin(a) * 0.4, 0, -a, 0, 0.45, 0.08, 0.16); } b.add(P.cyl, 0x2b8a3e, 0, 1.45, 0, 0, 0, 0, 0.08, 0.3, 0.08);
+    [-0.45, 0.45].forEach((x) => { b.add(P.sphere, 0xffffff, x, 0.35, 1.3, 0, 0, 0, 0.26, 0.3, 0.12); b.add(P.sphere, 0x111111, x, 0.33, 1.4, 0, 0, 0, 0.12, 0.15, 0.06); }); M.tomato = b.build(); }
+  { const b = new Builder(); b.add(P.rbox, 0xf8fafc, 0, 1.0, 0, 0, 0, 0, 1.6, 1.3, 1.3); b.add(P.rboxS, 0x1e1b4b, 0, 1.1, 0.62, 0, 0, 0, 1.2, 0.6, 0.1); [-0.3, 0.3].forEach((x) => b.add(P.sphere, 0x22e5ff, x, 1.12, 0.7, 0, 0, 0, 0.14, 0.14, 0.05, 2.2));
+    b.add(P.cyl, 0x334155, 0, 0.25, 0, 0, 0, PI / 2, 0.35, 1.9, 0.35); [-1, 1].forEach((s) => { b.add(P.cyl, 0x1f2937, s * 0.95, 0.35, 0, 0, 0, PI / 2, 0.36, 0.22, 0.36); b.add(P.capsule, 0xffd60a, s * 1.0, 1.1, 0.2, 0.8, 0, s * 0.4, 0.22, 0.6, 0.22); b.add(P.sphere, 0x111827, s * 0.9, 2.0, 0, 0, 0, 0, 0.09); b.add(P.cyl, 0x94a3b8, s * 0.3, 1.85, 0, 0, 0, s * 0.3, 0.03, 0.5, 0.03); });
+    b.add(P.sphere, 0xff4fd8, 0, 1.7, 0, 0, 0, 0, 0.18, 0.18, 0.18, 2); b.add(P.rboxS, 0xffd60a, 0, 0.65, 0.66, 0, 0, 0, 0.5, 0.22, 0.04, 0.3); M.robot = b.build(); }
+  { const b = new Builder(); b.add(P.capsule, 0xffd8a8, 0, 0.3, 0.2, PI / 2, 0, 0, 0.55, 1.6, 0.4); b.addFn(new THREE.TorusGeometry(0.62, 0.4, 16, 40), (c, x, y) => c.set(Math.sin(Math.atan2(y, x) * 3 + Math.hypot(x, y) * 6) > 0 ? 0xc2410c : 0xfb923c), 0, 1.15, -0.2, 0, PI / 2, 0, 1, 1, 1.25);
+    [-1, 1].forEach((s) => { b.add(P.cyl, 0xffd8a8, s * 0.12, 0.85, 1.05, -0.4, 0, s * 0.25, 0.04, 0.5, 0.04); b.add(P.sphere, 0x111111, s * 0.18, 1.1, 1.15, 0, 0, 0, 0.09); }); M.snail = b.build(); }
   M.ghostMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, transparent: true, opacity: 0.85, roughness: 0.3, emissive: 0x8070ff, emissiveIntensity: 0.25 });
   { const b = new Builder(); b.add(P.cyl, 0xff3b5c, 0, 1.0, 0, 0, 0, 0, 1.0, 2.0, 1.0); b.add(P.sphere, 0xffffff, 0, 2.1, 0, 0, 0, 0, 1.0, 0.5, 1.0); M.sweepBase = b.build(); }
   M.sweepArm = (() => { const g = new THREE.CapsuleGeometry(0.42, 1, 8, 20); g.rotateX(PI / 2); g.translate(0, 0, 0.5); return g; })();
@@ -55,7 +63,7 @@ export class RaceView {
     this.grp = new THREE.Group(); this.scene.add(this.grp);
     this.karts = race.karts.map((k) => { const K = makeKart(k.look); this.grp.add(K.root); return K; });
     this.fx = new FX(this.scene, E.quality === 'low');
-    const wk = W && W.th ? { snow: 'snow', volcano: 'embers', space: 'stars', candy: 'petals', haunted: 'fireflies' }[race.T ? race.T.theme : (race.arenaDef && race.arenaDef.theme === 'space' ? 'space' : '')] : null; this.fx.setWeather(wk);
+    const wk = W && W.th ? { snow: 'snow', volcano: 'embers', space: 'stars', candy: 'petals', haunted: 'fireflies', lab: 'fireflies', garden: 'petals' }[race.T ? race.T.theme : (race.arenaDef && race.arenaDef.theme === 'space' ? 'space' : '')] : null; this.fx.setWeather(wk);
     // orbs + coins
     const nb = Math.max(1, race.boxes.length);
     this.orbs = new THREE.InstancedMesh(M.orbShell, M.orbMat, nb); this.orbCores = new THREE.InstancedMesh(M.orbCore, vcMaterial(true), nb); this.orbs.frustumCulled = this.orbCores.frustumCulled = false; this.orbCores.castShadow = true; this.grp.add(this.orbCores, this.orbs);
@@ -78,6 +86,11 @@ export class RaceView {
       case 'snowball': g.userData.roll = mk(M.snowball, vcMaterial(false)); g.userData.roll.position.y = 2; break;
       case 'ball': g.userData.roll = mk(M.ball); g.userData.roll.scale.setScalar(1.5); break;
       case 'crab': mk(M.crab); break;
+      case 'tomato': g.userData.roll = mk(M.tomato); g.userData.roll.position.y = 1.5; break;
+      case 'robot': mk(M.robot); break;
+      case 'snail': mk(M.snail).scale.setScalar(1.15); break;
+      case 'cheese': mk(prop('cheesewheel')).scale.setScalar(0.75); break;
+      case 'pot': mk(prop('potplant')).scale.setScalar(0.85); break;
       case 'ghost': mk(M.ghost, M.ghostMat); break;
       case 'sweeper': mk(M.sweepBase); g.userData.arm = mk(M.sweepArm, M.sweepArmMat); g.userData.arm.position.y = 1.4; break;
       case 'geyser': mk(M.geyserBase); g.userData.col = mk(M.geyserCol, M.geyserMat); g.userData.col.castShadow = false; break;
@@ -94,7 +107,7 @@ export class RaceView {
     const M = models(); let m = this.ents.get(e.id); if (m) return m;
     const geo = { slime: M.slime, puck: M.puck, seeker: M.seeker, boom: M.boom }[e.type]; m = new THREE.Mesh(geo || M.puck, vcMaterial(true)); m.castShadow = true; this.grp.add(m); this.ents.set(e.id, m); return m;
   }
-  setGhost(frames, look) { if (!frames || !frames.length) return; const K = makeKart(look); K.root.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.42; o.material.depthWrite = false; o.castShadow = false; } }); this.grp.add(K.root); this.ghost = { K, frames }; }
+  setGhost(frames, look, rate = 1) { this.ghostRate = rate > 0 ? rate : 1; if (!frames || !frames.length) return; const K = makeKart(look); K.root.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.42; o.material.depthWrite = false; o.castShadow = false; } }); this.grp.add(K.root); this.ghost = { K, frames }; }
   dispose() { this.grp.removeFromParent(); this.fx.dispose(); this.grp.traverse((o) => { if (o.geometry && o.geometry.dispose && o.isInstancedMesh) o.dispose(); }); }
   update(dt) {
     const r = this.race, t = (this.t += dt), M = models();
@@ -118,7 +131,7 @@ export class RaceView {
       if (k.spin > 0 && Math.random() < 0.4) this.fx.burst(k.x, k.y + 1.6, k.z, 1, [[1.5, 1.4, 0.4]], 2, 0.5, 0.45);
     });
     // ghost replay (time trial)
-    if (this.ghost) { const f = this.ghost.frames, ft = r.time * 15, i = Math.min(f.length - 2, Math.floor(ft)); if (i >= 0 && r.state === 'run') { const a = f[i], b = f[i + 1], u = clamp(ft - i, 0, 1); animateKart(this.ghost.K, { x: a[0] + (b[0] - a[0]) * u, y: a[1] + (b[1] - a[1]) * u, z: a[2] + (b[2] - a[2]) * u, yaw: a[3] + wrapAng(b[3] - a[3]) * u, steer: a[4], speed: 30, grounded: true }, dt, t); this.ghost.K.root.visible = ft < f.length; } else if (r.state === 'count') { const a = f[0]; animateKart(this.ghost.K, { x: a[0], y: a[1], z: a[2], yaw: a[3], speed: 0 }, dt, t); } }
+    if (this.ghost) { const f = this.ghost.frames, ft = r.time * 15 * (this.ghostRate || 1), i = Math.min(f.length - 2, Math.floor(ft)); if (i >= 0 && r.state === 'run') { const a = f[i], b = f[i + 1], u = clamp(ft - i, 0, 1); animateKart(this.ghost.K, { x: a[0] + (b[0] - a[0]) * u, y: a[1] + (b[1] - a[1]) * u, z: a[2] + (b[2] - a[2]) * u, yaw: a[3] + wrapAng(b[3] - a[3]) * u, steer: a[4], speed: 30, grounded: true }, dt, t); this.ghost.K.root.visible = ft < f.length; } else if (r.state === 'count') { const a = f[0]; animateKart(this.ghost.K, { x: a[0], y: a[1], z: a[2], yaw: a[3], speed: 0 }, dt, t); } }
     // orbs
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
     r.boxes.forEach((b, i) => { const sc = b.t > 0 ? Math.max(0.001, 1 - b.t / 0.3) * (b.t < 0.3 ? 1 : 0.001) : 1; const k = b.t > 0 && b.t < 0.4 ? 1 - b.t / 0.4 : (b.t > 0 ? 0.001 : 1); const y = b.y + Math.sin(t * 2 + i) * 0.25;
@@ -134,7 +147,7 @@ export class RaceView {
     // hazards
     r.hazards.forEach((h, i) => { if (r.guest) hazardPos(r, h, r.time); const g = this.haz[i]; g.position.set(h.x, h.y, h.z); g.rotation.y = h.yaw || 0;
       if (g.userData.roll) { g.userData.roll.rotation.x = -(h.roll || 0); }
-      if (h.type === 'crab') g.rotation.y = (h.yaw || 0) + PI / 2 + Math.sin(t * 8) * 0.1;
+      if (h.type === 'crab' || h.type === 'robot' || h.type === 'snail') g.rotation.y = (h.yaw || 0) + PI / 2 + Math.sin(t * (h.type === 'snail' ? 2 : 8)) * 0.1;
       if (h.type === 'ghost') g.rotation.y = Math.atan2(E.camera.position.x - h.x, E.camera.position.z - h.z);
       if (g.userData.arm) { g.userData.arm.rotation.y = h.ang; g.userData.arm.scale.set(1, 1, h.armLen || 7); g.rotation.y = 0; }
       if (g.userData.col) { const k = h.erupt || 0; g.userData.col.visible = k > 0.02 || h.warn; g.userData.col.scale.set(1 + k * 0.3, h.warn ? 0.6 + Math.sin(t * 20) * 0.2 : 0.5 + k * 13, 1 + k * 0.3); if (k > 0.3 && Math.random() < 0.5) this.fx.burst(h.x, h.y + k * 12, h.z, 2, [[1.5, 0.6, 0.1], [1.5, 1.1, 0.3]], 6, 0.8, 0.8); }

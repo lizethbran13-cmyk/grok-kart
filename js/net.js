@@ -1,6 +1,6 @@
 // Online play via GrokNet (PeerJS): host-authoritative, 5-letter codes, up to 3 players, CPUs fill the grid.
 import { S, persist } from './save.js';
-import { TRACKS, ARENAS, CHARS, BODIES, WHEELS, GLIDERS, PAINTS, DIFF, RACERS, charById } from './data.js';
+import { TRACKS, ARENAS, CHARS, BODIES, WHEELS, GLIDERS, PAINTS, DIFF, RACERS, charById, DLC } from './data.js';
 import { esc, toast, $ } from './util.js';
 import { readInput } from './input.js';
 import { sfx } from './audio.js';
@@ -36,13 +36,14 @@ Net.roomPanel = function () {
   const room = Net.room; if (!room) return; if (G.state !== 'menu' || G.race) G.menuScene(); G.state = 'menu'; const ps = room.players(), host = room.isHost, c = Net.cfg;
   const list = ps.map((p) => `<div class="pRow"><span class="sw" style="background:${GN.cleanColor(p.color)}"></span><b>${esc((Net.looks[p.pid] && Net.looks[p.pid].name) || p.name)}</b><small>${p.slot === 0 ? 'Host' : 'Player ' + (p.slot + 1)}${p.pid === room.pid ? ' (you)' : ''}</small></div>`).join('');
   const segs = (id, opts, val) => `<div class="seg wrap" id="${id}">${opts.map(([v, l]) => `<button data-v="${v}" class="${v === val ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-  panel(`<div class="topBar"><h2>ROOM <span class="code">${room.code}</span></h2></div><p class="sub">Friends join with code <b>${room.code}</b> (${ps.length}/3)</p><div class="pList">${list}</div>` +
+  panel(`<div class="topBar"><h2>ROOM <span class="code">${room.code}</span></h2></div><p class="sub">Friends join with code <b>${room.code}</b> (${ps.length}/3)</p><div class="pList">${list}</div><button class="mbtn2" id="bRacer">🛠️ CHANGE RACER</button>${DLC.hostShare && !DLC.owned() ? '<p class="sub dlcTease">🐀 Your host shared the Super Kart Expansion: new racers + tracks!</p>' : ''}` +
     (host ? `<h3>MODE</h3>${segs('nMode', [['vs', '🏁 Race'], ['battle', '🎈 Balloons'], ['coins', '🪙 Coins']], c.mode)}
-      <h3>${c.mode === 'vs' ? 'TRACK' : 'ARENA'}</h3>${c.mode === 'vs' ? segs('nTrack', TRACKS.map((t) => [t.id, t.n]), c.track) : segs('nArena', ARENAS.map((a) => [a.id, a.n]), c.arena)}
+      <h3>${c.mode === 'vs' ? 'TRACK' : 'ARENA'}</h3>${c.mode === 'vs' ? segs('nTrack', TRACKS.filter((t) => !t.dlc || DLC.ok()).map((t) => [t.id, (t.dlc ? '🐀 ' : '') + t.n]), c.track) : segs('nArena', ARENAS.map((a) => [a.id, a.n]), c.arena)}
       <h3>CPU RACERS</h3>${segs('nCpu', [['1', 'Fill with CPUs'], ['0', 'Friends only']], c.cpus ? '1' : '0')}<h3>CPU LEVEL</h3>${segs('nDiff', Object.keys(DIFF).map((k) => [k, DIFF[k].n]), c.diff)}
       <div class="btnRow"><button class="mbtn2" id="bLeave">LEAVE</button><button class="go" id="bStart" ${ps.length < 2 ? 'disabled' : ''}>START! ▶</button></div>${ps.length < 2 ? '<p class="sub">Waiting for a friend to join…</p>' : ''}`
       : `<p class="sub">Waiting for the host to pick a track and start… 🏎️</p><div class="btnRow"><button class="mbtn2" id="bLeave">LEAVE</button></div>`), (cc) => {
     cc.querySelector('#bLeave').addEventListener('click', () => { Net.leave(); G.toTitle(); });
+    cc.querySelector('#bRacer').addEventListener('click', () => { sfx('click'); G.garage(() => { Net.sendLook(); Net.roomPanel(); }); });
     if (!host) return;
     const bs = (id, f) => { const el = cc.querySelector('#' + id); if (el) el.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { sfx('click'); f(b.dataset.v); Net.roomPanel(); })); };
     bs('nMode', (v) => { c.mode = v; }); bs('nTrack', (v) => { c.track = v; }); bs('nArena', (v) => { c.arena = v; }); bs('nCpu', (v) => { c.cpus = v === '1'; }); bs('nDiff', (v) => { c.diff = v; });
@@ -52,27 +53,28 @@ Net.roomPanel = function () {
 function bind(room) {
   Net.room = room;
   room.on('status', (t) => status(t, true));
-  room.on('open', () => { status('Connected!', true); sfx('coin'); room.send({ t: 'look', name: myName(), look: S.look }); if (room.isHost) Net.looks[room.pid] = { name: myName(), look: cleanLook(S.look) }; Net.roomPanel(); toast(room.isHost ? 'Room ' + room.code + ' is open!' : 'Joined room ' + room.code + '!'); });
+  room.on('open', () => { status('Connected!', true); sfx('coin'); room.send({ t: 'look', name: myName(), look: S.look }); if (room.isHost) { Net.looks[room.pid] = { name: myName(), look: cleanLook(S.look) }; room.broadcast({ t: 'dlc', on: DLC.owned() }); } Net.roomPanel(); toast(room.isHost ? 'Room ' + room.code + ' is open!' : 'Joined room ' + room.code + '!'); });
   room.on('join', (p) => { if (room.isHost && G.race && G.race.cfg.online) G.race.karts.forEach((k) => { if (k.pid === p.pid && k.ctrl === 'cpu' && k.wasRemote) { k.ctrl = 'remote'; k.ai = null; toast(p.name + ' is back!'); } });
-    if (p.pid !== room.pid) { toast('👋 ' + p.name + ' joined!'); sfx('coin'); } if (G.state === 'menu' && Net.room) Net.roomPanel(); });
+    if (p.pid !== room.pid) { toast('👋 ' + p.name + ' joined!'); sfx('coin'); if (room.isHost) room.broadcast({ t: 'dlc', on: DLC.owned() }); } if (G.state === 'menu' && Net.room) Net.roomPanel(); });
   room.on('leave', (p) => { toast(p.name + ' left', true); if (G.state === 'menu' && Net.room) Net.roomPanel();
     if (room.isHost && G.race && G.race.cfg.online) G.race.karts.forEach((k, i) => { if (k.pid === p.pid && k.ctrl === 'remote') { k.ctrl = 'cpu'; k.wasRemote = true; initAI(k, G.race.diff.skill, rng(i + 5)); toast('A CPU takes over for ' + p.name); } }); });
   room.on('message', (d, from) => onMsg(d, from));
   room.on('reconnecting', () => toast('Lost the host - reconnecting…', true));
-  room.on('error', (e) => { status(e.title + ': ' + e.message); const inGame = G.race && G.race.cfg.online; Net.room = null; if (inGame || G.state === 'menu') { toast(e.title + ' - back to the menu', true); G.session = null; G.toTitle(); } });
+  room.on('error', (e) => { status(e.title + ': ' + e.message); const inGame = G.race && G.race.cfg.online; Net.room = null; DLC.hostShare = false; if (G.fixLook) G.fixLook(); if (inGame || G.state === 'menu') { toast(e.title + ' - back to the menu', true); G.session = null; G.toTitle(); } });
   room.start();
 }
 Net.host = (code) => { status('Opening a room…', true); Net.looks = {}; bind(GN.createRoom({ role: 'host', code: code || undefined, name: myName(), color: GN.COLORS[0], max: 3, rejoin: !!code })); };
 Net.join = (code) => { status('Joining ' + code + '…', true); bind(GN.createRoom({ role: 'join', code, name: myName(), color: GN.COLORS[1], rejoin: !!Net.fromHub })); };
 Net.fromParams = (prm) => { Net.fromHub = true; S.name = prm.name; persist(); Net.lobby(); if (prm.mode === 'host') Net.host(prm.code); else Net.join(prm.code); };
-Net.leave = () => { if (!Net.room) return; try { Net.room.leave(); } catch (e) {} Net.room = null; };
+Net.sendLook = () => { const room = Net.room; if (!room) return; if (room.isHost) { Net.looks[room.pid] = { name: myName(), look: cleanLook(S.look) }; room.broadcast({ t: 'dlc', on: DLC.owned() }); } else room.send({ t: 'look', name: myName(), look: S.look }); };
+Net.leave = () => { DLC.hostShare = false; if (G.fixLook) G.fixLook(); if (!Net.room) return; try { Net.room.leave(); } catch (e) {} Net.room = null; };
 
 Net.start = function () {
   const room = Net.room; if (!room || !room.isHost) return; const ps = room.players(); if (ps.length < 2) return; const c = Net.cfg;
   const seed = (Math.random() * 1e9) | 0, R = rng(seed);
   const racers = ps.map((p) => { const L = Net.looks[p.pid] || { name: p.name, look: cleanLook({}) }; return { name: GN.cleanName(L.name), ctrl: p.pid === room.pid ? 'human' : 'remote', pid: p.pid, look: cleanLook(L.look) }; });
   const total = c.mode === 'vs' ? RACERS : 6; const used = racers.map((r) => r.look.char);
-  if (c.cpus) { const pool = CHARS.filter((ch) => !used.includes(ch.id)); while (racers.length < total) { const ch = pool.length ? pool.splice((R() * pool.length) | 0, 1)[0] : CHARS[(R() * CHARS.length) | 0]; racers.push({ name: ch.n, ctrl: 'cpu', look: { char: ch.id, body: BODIES[(R() * BODIES.length) | 0].id, wheels: WHEELS[(R() * WHEELS.length) | 0].id, glider: 'chute', paint: PAINTS[(R() * PAINTS.length) | 0] } }); } }
+  if (c.cpus) { const pool = CHARS.filter((ch) => !used.includes(ch.id) && (!ch.dlc || DLC.ok())); while (racers.length < total) { const ch = pool.length ? pool.splice((R() * pool.length) | 0, 1)[0] : CHARS[(R() * CHARS.length) | 0]; racers.push({ name: ch.n, ctrl: 'cpu', look: { char: ch.id, body: BODIES[(R() * BODIES.length) | 0].id, wheels: WHEELS[(R() * WHEELS.length) | 0].id, glider: 'chute', paint: PAINTS[(R() * PAINTS.length) | 0] } }); } }
   const cfg = { mode: c.mode, track: c.mode === 'vs' ? c.track : c.arena, diff: c.diff, seed, racers, online: true };
   Net.lastCfg = cfg; room.broadcast({ t: 'start', cfg }); Net.begin(cfg, true);
 };
@@ -134,4 +136,5 @@ function onMsg(d, from) {
   if (d.t === 'start' && d.cfg && Array.isArray(d.cfg.racers)) { const cfg = d.cfg; cfg.racers = cfg.racers.slice(0, 8).map((r) => ({ name: GN.cleanName(r.name), ctrl: r.ctrl === 'cpu' ? 'cpu' : r.ctrl === 'human' || r.ctrl === 'remote' ? 'remote' : 'cpu', pid: r.pid ? String(r.pid).slice(0, 20) : null, look: cleanLook(r.look) })); if (!['vs', 'battle', 'coins'].includes(cfg.mode)) cfg.mode = 'vs'; if (!DIFF[cfg.diff]) cfg.diff = 'normal'; Net.begin(cfg, false); }
   else if (d.t === 's') applySnap(d);
   else if (d.t === 'lobby') { G.session = null; Net.roomPanel(); }
+  else if (d.t === 'dlc') { const was = DLC.hostShare; DLC.hostShare = !!d.on; if (!DLC.hostShare && was && G.fixLook) { G.fixLook(); Net.sendLook(); } if (was !== DLC.hostShare) { if (DLC.hostShare && !DLC.owned()) toast('🐀 Your host shared the Super Kart Expansion!'); if (G.state === 'menu' && !document.querySelector('.garageScr')) Net.roomPanel(); } }
 }

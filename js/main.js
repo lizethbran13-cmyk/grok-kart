@@ -1,7 +1,8 @@
 // Grok Kart Party - game controller: menus, race flow, Grand Prix, time trial ghosts, battle, saves.
 import * as THREE from 'three';
 import { initEngine, setEnvironment, render, setQuality, trackFps, E } from './engine.js';
-import { CHARS, BODIES, WHEELS, GLIDERS, PAINTS, ITEMS, TRACKS, CUPS, ARENAS, DIFF, GP_POINTS, RACERS, trackById, charById } from './data.js';
+import { CHARS, BODIES, WHEELS, GLIDERS, PAINTS, ITEMS, TRACKS, CUPS, ARENAS, DIFF, GP_POINTS, RACERS, trackById, charById, DLC } from './data.js';
+import * as SKE from './ske.js';
 import { THEMES } from './themes.js';
 import { buildWorld } from './world.js';
 import { buildArenaWorld } from './arena.js';
@@ -19,12 +20,18 @@ import { $, esc, fmtTime, ord, toast, rng, clamp } from './util.js';
 
 const G = window.__gk = { ready: false, state: 'boot', race: null, view: null, hud: null, W: null, showroom: null, paused: false, session: null, autoDrive: false, S, simSpeed: 1 };
 const UI = $('ui');
+G.DLC = DLC; G.SKE = SKE;
+const DLC_MSG = '🐀 Part of the Super Kart Expansion - unlock it in the Grok Arcade DLC Shop!';
+// a DLC racer can only be driven while the expansion is unlocked (or borrowed from an online host)
+function fixLook() { const c = charById(S.look.char); if (c.dlc && !DLC.ok()) { S.look.char = 'grok'; persist(); } }
+G.fixLook = fixLook;
 
 /* ---------------- boot ---------------- */
 function boot() {
   $('loadBar').style.width = '30%';
   // older versions could flip a phone to LOW by themselves; that saved LOW is cleared once. LOW is now manual only.
   if (!S.opts.qManual) { if (S.opts.quality === 'low') S.opts.quality = 'high'; S.opts.qManual = 1; delete S.opts.autoQ; persist(); }
+  fixLook();
   initEngine($('c'), S.opts.quality);
   initInput(S.opts); setControlMode(S.opts.steer, S.opts.auto); setSound(S.opts.sound, S.opts.music);
   IN.onKey = (code) => { if (code === 'Escape' || code === 'KeyP') { if (G.state === 'race') togglePause(); } if (code === 'KeyQ' && G.view) G.view.cam.back = !G.view.cam.back; };
@@ -88,12 +95,12 @@ function toTitle() {
     <div class="menuGrid">
       <button class="mbtn big mb-gp" data-go="gp">🏆<b>GRAND PRIX</b><small>4 races · win the cup</small></button>
       <button class="mbtn mb-vs" data-go="vs">🏁<b>VS RACE</b><small>any track</small></button>
-      <button class="mbtn mb-tt" data-go="tt">⏱️<b>TIME TRIAL</b><small>beat your ghost</small></button>
+      <button class="mbtn mb-tt" data-go="tt">⏱️<b>TIME TRIAL</b><small>${DLC.ok() ? '🐀 ladder · medals' : 'beat your ghost'}</small></button>
       <button class="mbtn mb-battle" data-go="battle">🎈<b>BATTLE</b><small>balloons · coins</small></button>
       <button class="mbtn mb-online" data-go="online">🌐<b>ONLINE</b><small>up to 3 friends</small></button>
       <button class="mbtn mb-garage wide" data-go="garage">🛠️<b>GARAGE</b><small>racers · karts</small></button>
     </div>
-    <button class="howBtn" data-go="howto">❓ HOW TO PLAY</button>`, 'screen title');
+    <button class="howBtn" data-go="howto">❓ HOW TO PLAY</button>${DLC.owned() ? '<div class="dlcRibbon">🐀 SUPER KART EXPANSION</div>' : ''}`, 'screen title');
   if (!S.seenHow) { S.seenHow = true; persist(); setTimeout(() => { if (G.state === 'menu' && UI.querySelector('.title')) howto(true); }, 600); }
 }
 G.toTitle = toTitle;
@@ -109,10 +116,10 @@ function garage(next) {
   const bar = (n, v) => `<div class="stat"><span>${n}</span><i><b style="width:${(v / 6) * 100}%"></b></i></div>`;
   let cards = '';
   if (garageTab === 'paint') cards = PAINTS.map((c) => `<button class="swatch ${S.look.paint === c ? 'on' : ''}" data-paint="${c}" style="background:${c}"></button>`).join('');
-  else cards = tabDef[2].map((it) => { const owned = S.unl[garageTab].includes(it.id); const on = S.look[lookKey[garageTab]] === it.id;
+  else cards = tabDef[2].map((it) => { const owned = it.dlc ? DLC.ok() : S.unl[garageTab].includes(it.id); const on = S.look[lookKey[garageTab]] === it.id;
     const look = Object.assign({}, S.look, { [lookKey[garageTab]]: it.id }); const view = garageTab === 'chars' ? 'head' : garageTab === 'wheels' ? 'wheel' : garageTab === 'gliders' ? 'glider' : 'kart';
     const img = thumb(garageTab + it.id + (garageTab === 'chars' ? '' : S.look.paint + S.look.char), garageTab === 'chars' ? { char: it.id, body: 'classic', wheels: 'std', paint: S.look.paint, glider: 'chute' } : look, view);
-    return `<button class="card ${on ? 'on' : ''} ${owned ? '' : 'locked'}" data-id="${it.id}"><img src="${img}" alt=""><b>${esc(it.n)}</b>${owned ? (it.w ? `<small>${it.w}</small>` : '<small>&nbsp;</small>') : `<small class="price">🔒 ${it.price} 🪙</small>`}</button>`; }).join('');
+    return `<button class="card ${on ? 'on' : ''} ${owned ? '' : 'locked'} ${it.dlc ? 'dlc' : ''}" data-id="${it.id}"><img src="${img}" alt=""><b>${esc(it.n)}</b>${owned ? (it.w ? `<small>${it.dlc ? '🐀 ' : ''}${it.w}</small>` : '<small>&nbsp;</small>') : it.dlc ? '<small class="price">🔒 DLC</small>' : `<small class="price">🔒 ${it.price} 🪙</small>`}</button>`; }).join('');
   const ch = charById(S.look.char);
   show(`<div class="topBar"><button class="back" data-go="title">◀</button><h2>${next ? 'PICK YOUR RACER' : 'GARAGE'}</h2>${coinsBadge()}</div>
     <div class="garageInfo"><div class="gName">${esc(ch.n)}<small>${esc(ch.d)}</small></div><div class="stats">${bar('Speed', st.spd)}${bar('Accel', st.acc)}${bar('Handling', st.han)}${bar('Weight', st.wt)}</div></div>
@@ -122,7 +129,8 @@ function garage(next) {
     root.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { sfx('click'); garageTab = b.dataset.tab; garage(next); }));
     root.querySelectorAll('[data-paint]').forEach((b) => b.addEventListener('click', () => { sfx('click'); S.look.paint = b.dataset.paint; persist(); G.showroom.setLook(S.look); garage(next); }));
     root.querySelectorAll('.card').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.id; const it = tabDef[2].find((x) => x.id === id);
-      if (!S.unl[garageTab].includes(id)) { if (S.coins >= it.price) { if (confirm(`Unlock ${it.n} for ${it.price} coins?`)) { S.coins -= it.price; S.unl[garageTab].push(id); sfx('buy'); toast(`🎉 ${it.n} unlocked!`); } else return; } else { sfx('wrong'); toast(`Need ${it.price - S.coins} more coins - win races to earn them!`, true); return; } }
+      if (it.dlc) { if (!DLC.ok()) { sfx('wrong'); toast(DLC_MSG, true); return; } }
+      else if (!S.unl[garageTab].includes(id)) { if (S.coins >= it.price) { if (confirm(`Unlock ${it.n} for ${it.price} coins?`)) { S.coins -= it.price; S.unl[garageTab].push(id); sfx('buy'); toast(`🎉 ${it.n} unlocked!`); } else return; } else { sfx('wrong'); toast(`Need ${it.price - S.coins} more coins - win races to earn them!`, true); return; } }
       S.look[lookKey[garageTab]] = id; persist(); sfx('click'); G.showroom.setLook(S.look); garage(next); }));
     root.querySelector('#gDone').addEventListener('click', () => { sfx('click'); if (next) next(); else toTitle(); });
     const cs = root.querySelector('.cards .on'); if (cs) cs.scrollIntoView({ inline: 'center', block: 'nearest' });
@@ -136,9 +144,9 @@ function pickTrack(mode) {
   const diffSeg = mode === 'tt' ? '' : `<h3>CPU LEVEL</h3>${seg('sDiff', Object.keys(DIFF).map((k) => [k, DIFF[k].n]), S.opts.diff)}`;
   if (mode === 'gp') {
     show(`<div class="topBar"><button class="back" id="bBack">◀</button><h2>GRAND PRIX</h2>${coinsBadge()}</div>
-      <div class="cupRow">${CUPS.map((c) => `<button class="cup" data-cup="${c.id}"><span class="cupIc">${c.ic}</span><b>${c.n}</b><small>${c.tracks.map((t) => esc(trackById(t).n)).join('<br>')}</small><span class="troph">${['easy', 'normal', 'hard'].map((d) => trophyIcon((S.cups[c.id] || {})[d]) || '·').join(' ')}</span></button>`).join('')}</div>${diffSeg}`, 'screen pick', (root) => {
+      <div class="cupRow">${CUPS.map((c) => `<button class="cup ${c.dlc ? 'dlc' : ''} ${c.dlc && !DLC.ok() ? 'locked' : ''}" data-cup="${c.id}"><span class="cupIc">${c.ic}</span><b>${c.n}</b><small>${c.tracks.map((t) => esc(trackById(t).n)).join('<br>')}</small><span class="troph">${['easy', 'normal', 'hard'].map((d) => trophyIcon((S.cups[c.id] || {})[d]) || '·').join(' ')}</span></button>`).join('')}</div>${diffSeg}`, 'screen pick', (root) => {
       root.querySelector('#bBack').addEventListener('click', () => modeFlow(mode)); bindSeg(root, 'sDiff', (v) => { S.opts.diff = v; persist(); });
-      root.querySelectorAll('[data-cup]').forEach((b) => b.addEventListener('click', () => { sfx('click'); startGP(b.dataset.cup); })); });
+      root.querySelectorAll('[data-cup]').forEach((b) => b.addEventListener('click', () => { const cu = CUPS.find((c) => c.id === b.dataset.cup); if (cu.dlc && !DLC.ok()) { sfx('wrong'); toast(DLC_MSG, true); return; } sfx('click'); startGP(b.dataset.cup); })); });
     return;
   }
   if (mode === 'battle') {
@@ -153,14 +161,44 @@ function pickTrack(mode) {
     return;
   }
   let cpus = 7;
+  if (mode === 'tt' && DLC.ok()) return ttMenu();
+  const lockT = (t) => t.dlc && !DLC.ok();
   show(`<div class="topBar"><button class="back" id="bBack">◀</button><h2>${mode === 'tt' ? 'TIME TRIAL' : 'VS RACE'}</h2>${coinsBadge()}</div>
-    <div class="trackGrid">${TRACKS.map((t) => `<button class="trk th-${t.theme}" data-t="${t.id}"><b>${esc(t.n)}</b><small>${mode === 'tt' ? (S.best[t.id] ? '⏱ ' + fmtTime(S.best[t.id]) + (S.ghosts[t.id] ? ' 👻' : '') : 'no time yet') : CUPS[t.cup].ic + ' ' + CUPS[t.cup].n}</small></button>`).join('')}</div>
-    ${mode === 'vs' ? `<h3>CPU RACERS</h3>${seg('sCpu', [[0, '0'], [3, '3'], [5, '5'], [7, '7']], cpus)}` : '<p class="sub">Start with a Triple Turbo. Your best run is saved as a ghost to race next time!</p>'}${diffSeg}`, 'screen pick', (root) => {
+    <div class="trackGrid">${TRACKS.map((t) => `<button class="trk th-${t.theme} ${t.dlc ? 'dlc' : ''} ${lockT(t) ? 'locked' : ''}" data-t="${t.id}"><b>${esc(t.n)}</b><small>${lockT(t) ? '🔒 Super Kart Expansion' : mode === 'tt' ? (S.best[t.id] ? '⏱ ' + fmtTime(S.best[t.id]) + (S.ghosts[t.id] ? ' 👻' : '') : 'no time yet') : CUPS[t.cup].ic + ' ' + CUPS[t.cup].n}</small></button>`).join('')}</div>
+    ${mode === 'vs' ? `<h3>CPU RACERS</h3>${seg('sCpu', [[0, '0'], [3, '3'], [5, '5'], [7, '7']], cpus)}` : '<p class="sub">Start with a Triple Turbo. Your best run is saved as a ghost to race next time!</p><p class="sub dlcTease">🐀 Get the Super Kart Expansion for Ratita Staff ghosts, medals and the Ratita Challenge Ladder!</p>'}${diffSeg}`, 'screen pick', (root) => {
     root.querySelector('#bBack').addEventListener('click', () => modeFlow(mode)); bindSeg(root, 'sDiff', (v) => { S.opts.diff = v; persist(); }); bindSeg(root, 'sCpu', (v) => { cpus = +v; });
-    root.querySelectorAll('[data-t]').forEach((b) => b.addEventListener('click', () => { sfx('click'); startRace(soloCfg(mode, b.dataset.t, mode === 'tt' ? 0 : cpus)); })); });
+    root.querySelectorAll('[data-t]').forEach((b) => b.addEventListener('click', () => { if (lockT(trackById(b.dataset.t))) { sfx('wrong'); toast(DLC_MSG, true); return; } sfx('click'); startRace(soloCfg(mode, b.dataset.t, mode === 'tt' ? 0 : cpus)); })); });
 }
+/* ---------------- Super Kart Expansion: Time Trial hub (medals, Staff ghosts, Ratita Ladder) ---------------- */
+let ttTab = 'tracks';
+function ttMenu() {
+  const medals = S.medals || {}; const L = SKE.ladderState();
+  const vsSel = S.opts.ttGhost || 'staff';
+  const trackCards = TRACKS.map((t) => { const m = medals[t.id] || 0; const st = SKE.STAFF_T[t.id];
+    const nextM = m < 4 && st ? `${SKE.MEDALS[m + 1].ic} ${fmtTime(SKE.medalTarget(t.id, m + 1))}` : m === 4 ? '💎 Ratita Star!' : '';
+    return `<button class="trk th-${t.theme} ${t.dlc ? 'dlc' : ''}" data-t="${t.id}"><span class="medal">${m ? SKE.MEDALS[m].ic : '·'}</span><b>${esc(t.n)}</b><small>${S.best[t.id] ? '⏱ ' + fmtTime(S.best[t.id]) : 'no time yet'}${st ? ' · 🐀 ' + fmtTime(st.t) : ''}</small><small class="nextM">${nextM ? 'Next: ' + nextM : ''}</small></button>`; }).join('');
+  const total = TRACKS.reduce((a, t) => a + (medals[t.id] || 0), 0);
+  const rungs = SKE.LADDER.map((r, i) => { const c = charById(r.rival); const tgt = SKE.rungTarget(r); const done = i < L.next, cur = i === L.next, lock = i > L.next;
+    const nm = r.rival === 'martina' ? (i === 1 ? 'Torty' : 'Martina') : c.n;
+    return `<button class="rung ${done ? 'done' : ''} ${cur ? 'cur' : ''} ${lock ? 'locked' : ''} ${r.boss ? 'boss' : ''}" data-r="${i}"><span class="rn">${i + 1}</span><img src="${thumb('chars' + r.rival, { char: r.rival, body: 'classic', wheels: 'std', paint: '#ff3b5c', glider: 'chute' }, 'head')}" alt=""><span class="ri"><b>${r.boss ? '👑 ' : ''}${esc(nm)} · ${esc(trackById(r.track).n)}</b><small>${r.laps === 1 ? '1-lap sprint' : '3 laps'}${r.rule === 'noturbo' ? ' · no turbos' : ''} · beat ${tgt ? fmtTime(tgt) : '--'}</small></span><span class="rs">${done ? '✅' : lock ? '🔒' : '+' + r.coins + ' 🪙'}</span></button>`; }).join('');
+  show(`<div class="topBar"><button class="back" id="bBack">◀</button><h2>TIME TRIAL</h2>${coinsBadge()}</div>
+    <div class="tabs ttTabs"><button data-tt="tracks" class="${ttTab === 'tracks' ? 'on' : ''}">⏱️ Tracks · ${total}/40 🏅</button><button data-tt="ladder" class="${ttTab === 'ladder' ? 'on' : ''}">🐀 Ratita Ladder ${L.next}/10</button></div>
+    ${ttTab === 'tracks' ? `<h3>RACE AGAINST</h3>${seg('sGhost', [['staff', '🐀 Ratita Staff ghost'], ['mine', '👻 My best ghost']], vsSel)}<div class="trackGrid">${trackCards}</div><p class="sub">Medals: 🥉 Bronze · 🥈 Silver · 🥇 Gold · 💎 beat the Ratita Staff!</p>`
+      : `<p class="sub">Climb the Ratita Challenge Ladder! Beat each rival's ghost time to unlock the next rung.${L.champ ? ' <b>🏆 You are a Ratita Champion!</b>' : ''}</p><div class="ladder">${rungs}</div>`}`, 'screen pick ttHub', (root) => {
+    root.querySelector('#bBack').addEventListener('click', () => modeFlow('tt'));
+    root.querySelectorAll('[data-tt]').forEach((b) => b.addEventListener('click', () => { sfx('click'); ttTab = b.dataset.tt; ttMenu(); }));
+    bindSeg(root, 'sGhost', (v) => { S.opts.ttGhost = v; persist(); });
+    root.querySelectorAll('[data-t]').forEach((b) => b.addEventListener('click', () => { sfx('click'); startTT(b.dataset.t); }));
+    root.querySelectorAll('[data-r]').forEach((b) => b.addEventListener('click', () => { const i = +b.dataset.r; if (i > L.next) { sfx('wrong'); toast('🔒 Beat rung ' + (L.next + 1) + ' first!', true); return; } sfx('click'); startRung(i); }));
+    const cur = root.querySelector('.rung.cur'); if (cur) cur.scrollIntoView({ block: 'center' });
+  });
+}
+function withStaff(id, fn) { $('loading').classList.remove('gone'); $('loadTxt').textContent = 'Fetching the Ratita Staff ghost…'; SKE.loadStaff(id).then((st) => fn(st)); }
+function startTT(id) { const cfg = soloCfg('tt', id, 0); cfg.ghostSel = S.opts.ttGhost || 'staff'; if (cfg.ghostSel === 'staff') withStaff(id, () => startRace(cfg)); else startRace(cfg); }
+function startRung(i) { const r = SKE.LADDER[i]; const cfg = soloCfg('tt', r.track, 0); cfg.ladder = i; cfg.laps = r.laps; cfg.rule = r.rule; cfg.ghostRecord = false; withStaff(r.track, () => startRace(cfg)); }
+G.garage = garage; G.startTT = startTT; G.startRung = startRung; G.ttMenu = ttMenu;
 function cpuRoster(n, exclude, seed) {
-  const R = rng(seed); const pool = CHARS.filter((c) => !exclude.includes(c.id)).map((c) => c.id); const out = [];
+  const R = rng(seed); const pool = CHARS.filter((c) => !exclude.includes(c.id) && (!c.dlc || DLC.ok())).map((c) => c.id); const out = [];
   for (let i = 0; i < n; i++) { const ch = pool.length ? pool.splice((R() * pool.length) | 0, 1)[0] : CHARS[(R() * CHARS.length) | 0].id; const c = charById(ch);
     out.push({ name: c.n, ctrl: 'cpu', look: { char: ch, body: BODIES[(R() * BODIES.length) | 0].id, wheels: WHEELS[(R() * WHEELS.length) | 0].id, glider: GLIDERS[(R() * GLIDERS.length) | 0].id, paint: PAINTS[(R() * PAINTS.length) | 0] } }); }
   return out;
@@ -199,16 +237,23 @@ function startRace(cfg) {
     const theme = r.battle ? r.arenaDef.theme : r.T.theme; setEnvironment(THEMES[theme].env);
     const W = r.battle ? buildArenaWorld(r.world.arena, E.scene, E.quality) : buildWorld(r.D, E.scene, E.quality);
     r.attachWorld(W); G.W = W; G.race = r;
-    if (cfg.mode === 'tt') { const k = r.karts[0]; k.item = 'turbo3'; k.itemQty = 3; }
+    if (cfg.mode === 'tt') { const k = r.karts[0]; if (cfg.rule !== 'noturbo') { k.item = 'turbo3'; k.itemQty = 3; } }
     G.view = new RaceView(r, W, { me: G.me }); G.hud = new HUD(r, G.me);
     initDecorCull(W); freeUnused(old, E.scene); E.renderer.renderLists.dispose(); warmShaders(E.renderer, E.scene, E.camera);
-    if (cfg.mode === 'tt' && S.ghosts[cfg.track]) G.view.setGhost(S.ghosts[cfg.track].f, S.ghosts[cfg.track].look);
+    let target = null, tgtLbl = '';
+    if (cfg.mode === 'tt' && cfg.ladder != null) { const rg = SKE.LADDER[cfg.ladder], st = SKE.STAFF[cfg.track]; target = SKE.rungTarget(rg); tgtLbl = '🐀 ' + rivalName(cfg.ladder);
+      if (st && target) G.view.setGhost(st.f, SKE.rivalLook(rg), (rg.laps === 1 ? st.laps[0] : st.t) / target); }
+    else if (cfg.mode === 'tt' && cfg.ghostSel === 'staff' && SKE.STAFF[cfg.track]) { const st = SKE.STAFF[cfg.track]; G.view.setGhost(st.f, st.look); const m = (S.medals || {})[cfg.track] || 0; if (m < 4) { target = SKE.medalTarget(cfg.track, m + 1); tgtLbl = SKE.MEDALS[m + 1].ic; } }
+    else if (cfg.mode === 'tt' && S.ghosts[cfg.track]) G.view.setGhost(S.ghosts[cfg.track].f, S.ghosts[cfg.track].look);
+    if (cfg.mode === 'tt' && !target && DLC.ok() && SKE.STAFF_T[cfg.track]) { const m = (S.medals || {})[cfg.track] || 0; if (m < 4) { target = SKE.medalTarget(cfg.track, m + 1); tgtLbl = SKE.MEDALS[m + 1].ic; } }
+    setTarget(target, tgtLbl);
     r.cbs.fx = (t, x, y, z) => G.view && G.view.onFx(t, x, y, z); r.cbs.flash = (t) => onFlash(t); r.cbs.event = (k, ev) => onEvent(k, ev);
     G.state = 'race'; G.paused = false; acc = 0;
     $('hud').classList.remove('hidden'); $('touch').classList.remove('hidden'); $('hPause').style.display = '';
     $('loadBar').style.width = '100%'; setTimeout(() => $('loading').classList.add('gone'), 150);
     music(theme === 'haunted' || theme === 'volcano' ? 'spooky' : theme === 'space' ? 'space' : 'sunny');
-    const nm = r.battle ? (r.mode === 'coins' ? '🪙 COIN RUNNERS' : '🎈 BALLOON BATTLE') : (cfg.gpRace ? `${G.session.cup.n} · Race ${cfg.gpRace}/4` : '') ;
+    const nm = r.battle ? (r.mode === 'coins' ? '🪙 COIN RUNNERS' : '🎈 BALLOON BATTLE') : cfg.ladder != null ? `🐀 Rung ${cfg.ladder + 1}/10 · beat ${fmtTime(target)}${cfg.rule === 'noturbo' ? ' · no turbos' : ''}` : (cfg.gpRace ? `${G.session.cup.n} · Race ${cfg.gpRace}/4` : '') ;
+    if (cfg.ladder != null) G.hud.msg(SKE.LADDER[cfg.ladder].line, 3.2);
     G.hud.big(`<div class="trackName">${esc(r.battle ? r.arenaDef.n : r.T.n)}</div>${nm ? `<div class="sub2">${esc(nm)}</div>` : ''}<div class="hint">${IN.mode === 'tilt' ? 'Tilt to steer' : 'Hold DRIFT when “2” disappears for a rocket start!'}</div>`, 2.4, 'intro');
   }, 60);
 }
@@ -240,6 +285,8 @@ function onEvent(k, ev) {
 }
 G.onEvent = onEvent;
 
+function rivalName(i) { const r = SKE.LADDER[i]; return r.rival === 'martina' ? (i === 1 ? 'Torty' : 'Martina') : charById(r.rival).n; }
+function setTarget(t, lbl) { const e = $('hTarget'); if (!e) return; e.style.display = t ? '' : 'none'; e.textContent = t ? `${lbl} ${fmtTime(t)}` : ''; }
 function togglePause(force) {
   if (G.state !== 'race') return;
   G.paused = force != null ? force : !G.paused;
@@ -260,7 +307,14 @@ function showResults(which) {
   const res = r.results, mine = res.find((x) => x.slot === G.me) || res[0]; const mode = r.mode;
   const earned = rewardFor(mine, mode); S.coins += earned; S.stats.races++; if (mine.place === 1) S.stats.wins++;
   let extra = '';
-  if (mode === 'tt' && r.karts[G.me].finished) { const t = r.karts[G.me].finishTime, prev = S.best[r.cfg.track]; if (!prev || t < prev) { S.best[r.cfg.track] = t; S.ghosts[r.cfg.track] = { f: r.ghostRec, look: Object.assign({}, r.karts[G.me].look), t }; extra = `<div class="newRec">⭐ NEW RECORD! ${fmtTime(t)}<br><small>Your ghost is saved 👻</small></div>`; } else extra = `<div class="sub">Best: ${fmtTime(prev)} · You: ${fmtTime(t)}</div>`; }
+  let ladderRes = null;
+  if (mode === 'tt' && r.cfg.ladder != null) { const i = r.cfg.ladder, rg = SKE.LADDER[i], L = SKE.ladderState(), tgt = SKE.rungTarget(rg), k = r.karts[G.me]; const t = k.finished ? k.finishTime : null; const win = t != null && tgt && t <= tgt;
+    ladderRes = { i, win }; if (t != null && (!L.best[i] || t < L.best[i])) L.best[i] = t;
+    if (win) { let bonus = 0; if (L.next === i) { L.next = i + 1; bonus = rg.coins; S.coins += bonus; if (i === SKE.LADDER.length - 1) L.champ = true; }
+      extra = `<div class="newRec">🐀 YOU BEAT ${esc(rivalName(i).toUpperCase())}! ${fmtTime(t)}<br><small>Target ${fmtTime(tgt)}${bonus ? ` · rung bonus +${bonus} 🪙` : ''}</small></div>${i === SKE.LADDER.length - 1 && bonus ? '<div class="newRec champ">👑 RATITA CHAMPION! 👑<br><small>You climbed the whole Ratita Ladder!</small></div>' : ''}`; sfx('finish'); }
+    else extra = `<div class="sub">${esc(rivalName(i))} wins this time! You: ${fmtTime(t)} · Target: ${fmtTime(tgt)}<br>Try again - you've got this! 💪</div>`; }
+  else if (mode === 'tt' && r.karts[G.me].finished) { const t = r.karts[G.me].finishTime, prev = S.best[r.cfg.track]; if (!prev || t < prev) { S.best[r.cfg.track] = t; S.ghosts[r.cfg.track] = { f: r.ghostRec, look: Object.assign({}, r.karts[G.me].look), t }; extra = `<div class="newRec">⭐ NEW RECORD! ${fmtTime(t)}<br><small>Your ghost is saved 👻</small></div>`; } else extra = `<div class="sub">Best: ${fmtTime(prev)} · You: ${fmtTime(t)}</div>`;
+    if (DLC.ok() && SKE.STAFF_T[r.cfg.track]) { const md = SKE.saveMedal(r.cfg.track, t); if (md.m > md.prev) extra += `<div class="newRec medalWon">${SKE.MEDALS[md.m].ic} ${SKE.MEDALS[md.m].n.toUpperCase()} MEDAL!<br><small>+${md.coins} 🪙 medal bonus</small></div>`; else if (md.m < 4) extra += `<div class="sub">Next medal ${SKE.MEDALS[md.m + 1].ic} at ${fmtTime(SKE.medalTarget(r.cfg.track, md.m + 1))}</div>`; } }
   let gpTable = '';
   if (G.session && mode === 'gp') { const s = G.session; res.forEach((x) => { s.points[x.slot] += GP_POINTS[x.place - 1] || 0; }); s.idx++;
     const order = s.points.map((p, i) => i).sort((a, b) => s.points[b] - s.points[a]);
@@ -270,12 +324,13 @@ function showResults(which) {
   const rows = res.map((x) => `<div class="row ${x.slot === G.me ? 'me' : ''} ${x.ctrl !== 'cpu' && x.slot !== G.me ? 'friend' : ''}"><span class="pl">${x.place}</span><img src="${thumb('chars' + x.look.char, { char: x.look.char, body: 'classic', wheels: 'std', paint: x.look.paint, glider: 'chute' }, 'head')}"><span class="nm">${esc(x.name)}</span><span class="pts">${isBattle ? (mode === 'coins' ? x.bcoins + ' 🪙' : (x.balloons > 0 ? '🎈'.repeat(x.balloons) : '💥') + ' ' + x.score + ' pops') : (x.est ? '~' : '') + fmtTime(x.time)}${mode === 'gp' ? ` <em>+${GP_POINTS[x.place - 1] || 0}</em>` : ''}</span></div>`).join('');
   const gpDone = G.session && mode === 'gp' && G.session.idx >= 4;
   const online = r.cfg.online;
-  show(`<h2 class="resTitle">${mine.place === 1 ? '🏆 YOU WIN!' : ord(mine.place).toUpperCase() + ' PLACE'}</h2>${extra}<div class="tbl">${rows}</div>${gpTable}
+  show(`<h2 class="resTitle">${mode === 'tt' ? (ladderRes ? (ladderRes.win ? '🐀 RUNG CLEARED!' : '⏱️ SO CLOSE!') : '⏱️ TIME TRIAL') : mine.place === 1 ? '🏆 YOU WIN!' : ord(mine.place).toUpperCase() + ' PLACE'}</h2>${extra}<div class="tbl">${rows}</div>${gpTable}
     <div class="earn">+${earned} 🪙 <small>(total ${S.coins})</small></div>
-    <div class="btnRow">${online ? (r.guest ? '<p class="sub">Waiting for the host…</p><button class="mbtn2" id="rQuit">LEAVE</button>' : '<button class="go" id="rLobby">BACK TO ROOM ▶</button>') : gpDone ? '<button class="go" id="rCup">SEE TROPHY 🏆</button>' : mode === 'gp' ? '<button class="go" id="rNext">NEXT RACE ▶</button><button class="mbtn2" id="rQuit">QUIT CUP</button>' : '<button class="go" id="rAgain">↺ AGAIN</button><button class="mbtn2" id="rQuit">MENU</button>'}</div>`, 'panel results', (root) => {
+    <div class="btnRow">${online ? (r.guest ? '<p class="sub">Waiting for the host…</p><button class="mbtn2" id="rQuit">LEAVE</button>' : '<button class="go" id="rLobby">BACK TO ROOM ▶</button>') : gpDone ? '<button class="go" id="rCup">SEE TROPHY 🏆</button>' : mode === 'gp' ? '<button class="go" id="rNext">NEXT RACE ▶</button><button class="mbtn2" id="rQuit">QUIT CUP</button>' : ladderRes ? (ladderRes.win && ladderRes.i < SKE.LADDER.length - 1 ? '<button class="go" id="rRung">NEXT RUNG ▶</button>' : '') + '<button class="' + (ladderRes.win && ladderRes.i < SKE.LADDER.length - 1 ? 'mbtn2' : 'go') + '" id="rAgain">↺ RETRY</button><button class="mbtn2" id="rLadder">🐀 LADDER</button>' : '<button class="go" id="rAgain">↺ AGAIN</button><button class="mbtn2" id="rQuit">MENU</button>'}</div>`, 'panel results', (root) => {
     const on = (id, f) => { const b = root.querySelector('#' + id); if (b) b.addEventListener('click', () => { sfx('click'); f(); }); };
     on('rNext', () => nextGPRace()); on('rAgain', () => startRace(Object.assign({}, r.cfg, { seed: (Math.random() * 1e9) | 0 }))); on('rQuit', () => { if (online) Net.leave(); G.session = null; toTitle(); });
     on('rCup', () => cupScreen()); on('rLobby', () => Net.backToLobby());
+    on('rRung', () => startRung(ladderRes.i + 1)); on('rLadder', () => { G.session = null; G.state = 'menu'; G.menuScene(); ttTab = 'ladder'; ttMenu(); });
   });
 }
 G.showResults = showResults;

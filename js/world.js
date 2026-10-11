@@ -175,6 +175,37 @@ function decorate(W, D, T, th, R, quality, add, baseY) {
       instances(W, 'volcanoCone', ring(1, 120, 140).map((p) => Object.assign(p, { s: 160, sy: 110 })), { shadow: false });
       instances(W, 'basalt', ring(N(30), 40, 200).map((p) => Object.assign(p, { s: 15 + R() * 20, sy: 10 + R() * 25 })), { shadow: false });
       W.anim.push((dt, t) => { lava.material.uniforms.t.value = t; }); break; }
+    case 'lab': { // Ratita Labs: science campus, cheese silos, neon arches
+      const tint = [0xffffff, 0xe0f7ff, 0xffe9f5, 0xfff6cc, 0xe9e3ff];
+      const tw = scatter(N(46), edge + 16, edge + 80); tw.forEach((p) => { p.s = 9 + R() * 6; p.sy = 18 + R() * 42; p.c = tint[(R() * 5) | 0]; p.ry = Math.round(p.ry / (PI / 2)) * PI / 2; }); instances(W, 'labtower', tw, { gloss: true });
+      const face = (l) => l.map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; });
+      instances(W, 'labdome', sz(face(scatter(N(10), edge + 14, edge + 50)), 0.8, 1.25), { gloss: true });
+      instances(W, 'cheesesilo', sz(scatter(N(24), edge + 6, edge + 36), 0.8, 1.3), { gloss: true });
+      instances(W, 'testtube', sz(scatter(N(48), edge, edge + 12), 0.8, 1.4), { gloss: true });
+      instances(W, 'tesla', sz(scatter(N(22), edge + 1, edge + 18), 0.85, 1.25), { gloss: true });
+      instances(W, 'ratstatue', sz(face(scatter(N(5), edge + 10, edge + 30)), 0.9, 1.2), { gloss: true });
+      instances(W, 'robotarm', sz(scatter(N(26), edge, edge + 10), 0.9, 1.3), { gloss: true });
+      instances(W, 'dish', sz(scatter(N(10), edge + 4, edge + 30), 1.0, 1.6), { gloss: true });
+      instances(W, 'cheesewheel', sz(scatter(N(46), edge, edge + 16), 0.7, 1.4), { gloss: true });
+      instances(W, 'labcrate', sz(scatter(N(56), edge, edge + 12), 0.8, 1.4), { gloss: true });
+      instances(W, 'neonpost', face(scatter(N(54), hw + SH + 1.2, hw + SH + 1.8)), { gloss: true });
+      instances(W, 'bush', scatter(N(70), edge, edge + 22).map((p) => Object.assign(p, { c: [0x7cf7d4, 0xffb3e0, 0xb9a8ff][(R() * 3) | 0] })), {});
+      instances(W, 'labtowerFar', ring(N(44), 70, 260).map((p) => Object.assign(p, { s: 16 + R() * 14, sy: 40 + R() * 100, c: [0xd7ccff, 0xffd1ec, 0xc7f5ff][(R() * 3) | 0] })), { shadow: false });
+      neonArches(W, D, hw); clouds(0xffd6f0, 12); break; }
+    case 'garden': { // Torty's Garden: giant sunflowers, veggies, picket fences, a Torty topiary
+      instances(W, 'sunflower', sz(scatter(N(120), edge, edge + 28), 0.85, 1.45), {});
+      instances(W, 'mushroom', sz(scatter(N(40), edge + 1, edge + 24), 0.8, 1.7), { gloss: true });
+      instances(W, 'carrot', sz(scatter(N(36), edge, edge + 18), 0.8, 1.4), {}); instances(W, 'lettuce', sz(scatter(N(46), edge, edge + 16), 0.8, 1.5), {});
+      instances(W, 'flowerbed', sz(scatter(N(70), edge, edge + 14), 0.8, 1.3), {}); instances(W, 'gnome', sz(scatter(N(22), edge, edge + 14).map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; }), 1.0, 1.5), { gloss: true });
+      instances(W, 'fence', scatter(N(60), edge - 1.2, edge - 0.4).map((p) => { p.ry = Math.atan2(-D.TZ[p.i], D.TX[p.i]); return p; }), {});
+      instances(W, 'greenhouse', sz(scatter(N(4), edge + 16, edge + 40), 1.0, 1.3), { gloss: true });
+      instances(W, 'topiary', sz(scatter(N(5), edge + 8, edge + 28).map((p) => { p.ry = Math.atan2(D.X[p.i] - p.x, D.Z[p.i] - p.z); return p; }), 1.0, 1.4), {});
+      instances(W, 'wateringcan', sz(scatter(N(7), edge + 6, edge + 30), 1.6, 2.6), { gloss: true }); instances(W, 'potplant', sz(scatter(N(26), edge, edge + 14), 0.8, 1.3), { gloss: true });
+      instances(W, 'butterflies', scatter(N(26), edge, edge + 20).map((p) => Object.assign(p, { y: p.y + R() * 2 })), { shadow: false });
+      instances(W, 'tree', sz(scatter(N(40), edge + 10, edge + 50), 1.0, 1.6), {}); instances(W, 'bush', sz(scatter(N(70), edge, edge + 22), 0.8, 1.4), {});
+      instances(W, 'hill', ring(N(30), 40, 240).map((p) => Object.assign(p, { s: 50 + R() * 50, sy: 18 + R() * 30 })), { shadow: false });
+      instances(W, 'sunflower', ring(N(24), 20, 60).map((p) => Object.assign(p, { s: 3 + R() * 2 })), { shadow: false });
+      clouds(); break; }
     case 'space': {
       instances(W, 'asteroid', scatter(N(70), edge, edge + 60, 'float').map((p) => Object.assign(p, { s: 1.5 + R() * 4, rx: R() * 6, rz: R() * 6 })), {});
       instances(W, 'pylon', scatter(N(30), hw + 2.5, hw + 3.5, 'float').map((p) => { const ny = nearestY(D, p.x, p.z); p.y = ny.y - 3; return p; }), {});
@@ -188,6 +219,13 @@ function decorate(W, D, T, th, R, quality, add, baseY) {
   }
 }
 
+// glowing hoops over the road (one merged draw call), skipping the start gate, gaps and shortcut mouths
+function neonArches(W, D, hw) {
+  const b = new Builder(); const half = new THREE.TorusGeometry(hw + 2.2, 0.32, 10, 48, PI);
+  for (let s = 40; s < D.L - 30; s += 46) { const i = D.uIdx(s / D.L); if (D.GAP[i] || D.VOID[i]) continue; const p = pointAt(D, s, 0); const k = Math.round(s / 46);
+    b.add(half, k % 2 ? 0x22e5ff : 0xff4fd8, p.x, p.y - 0.4, p.z, 0, p.yaw, 0, 1, 1, 1, 1.4); }
+  if (!b.parts.length) return; const m = new THREE.Mesh(b.build(), vcMaterial(true)); m.castShadow = false; m.receiveShadow = false; W.grp.add(m);
+}
 export function waterMat(c1, c2) {
   return new THREE.ShaderMaterial({ fog: true, uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { t: { value: 0 }, c1: { value: new THREE.Color(c1) }, c2: { value: new THREE.Color(c2) } }]),
     vertexShader: '#include <fog_pars_vertex>\nvarying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; vec4 mvPosition = viewMatrix*w; gl_Position = projectionMatrix*mvPosition;\n#include <fog_vertex>\n}',
