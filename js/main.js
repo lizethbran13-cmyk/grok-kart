@@ -243,7 +243,7 @@ function startRace(cfg) {
     let target = null, tgtLbl = '';
     if (cfg.mode === 'tt' && cfg.ladder != null) { const rg = SKE.LADDER[cfg.ladder], st = SKE.STAFF[cfg.track]; target = SKE.rungTarget(rg); tgtLbl = '🐀 ' + rivalName(cfg.ladder);
       if (st && target) G.view.setGhost(st.f, SKE.rivalLook(rg), (rg.laps === 1 ? st.laps[0] : st.t) / target); }
-    else if (cfg.mode === 'tt' && cfg.ghostSel === 'staff' && SKE.STAFF[cfg.track]) { const st = SKE.STAFF[cfg.track]; G.view.setGhost(st.f, st.look); const m = (S.medals || {})[cfg.track] || 0; if (m < 4) { target = SKE.medalTarget(cfg.track, m + 1); tgtLbl = SKE.MEDALS[m + 1].ic; } }
+    else if (cfg.mode === 'tt' && cfg.ghostSel === 'staff' && SKE.STAFF[cfg.track]) { const st = SKE.STAFF[cfg.track]; G.view.setGhost(st.f, st.look, 1 / SKE.STAFF_PACE); const m = (S.medals || {})[cfg.track] || 0; if (m < 4) { target = SKE.medalTarget(cfg.track, m + 1); tgtLbl = SKE.MEDALS[m + 1].ic; } }
     else if (cfg.mode === 'tt' && S.ghosts[cfg.track]) G.view.setGhost(S.ghosts[cfg.track].f, S.ghosts[cfg.track].look);
     if (cfg.mode === 'tt' && !target && DLC.ok() && SKE.STAFF_T[cfg.track]) { const m = (S.medals || {})[cfg.track] || 0; if (m < 4) { target = SKE.medalTarget(cfg.track, m + 1); tgtLbl = SKE.MEDALS[m + 1].ic; } }
     setTarget(target, tgtLbl);

@@ -32,7 +32,10 @@ export function encode(frames) { // dev: 15 Hz frames -> 7.5 Hz deltas (yaw unwr
   return out;
 }
 // staff times (3 laps, seconds) baked from the recorded ghosts so menus can show medals without downloading them
-export const STAFF_T = {"city":{"t":103.55,"laps":[36.48,70.8,103.55]},"canyon":{"t":113.63,"laps":[37.73,75.32,113.63]},"candy":{"t":96.32,"laps":[31.2,66.22,96.32]},"beach":{"t":93.3,"laps":[30.93,61.58,93.3]},"castle":{"t":90.58,"laps":[32.77,61.92,90.58]},"frost":{"t":110.53,"laps":[36.55,75.85,110.53]},"lava":{"t":106.72,"laps":[36.67,73.2,106.72]},"space":{"t":94.25,"laps":[31.68,62.95,94.25]},"ratlab":{"t":128.48,"laps":[44.47,86.87,128.48]},"garden":{"t":121.68,"laps":[42.02,81.43,121.68]}};
+// raw autopilot recordings; the Ratita Staff drive them 6% quicker (ghosts are played back at 1/STAFF_PACE speed to match)
+export const STAFF_PACE = 0.94;
+const STAFF_RAW = {"city":{"t":103.55,"laps":[36.48,70.8,103.55]},"canyon":{"t":113.63,"laps":[37.73,75.32,113.63]},"candy":{"t":96.32,"laps":[31.2,66.22,96.32]},"beach":{"t":93.3,"laps":[30.93,61.58,93.3]},"castle":{"t":90.58,"laps":[32.77,61.92,90.58]},"frost":{"t":110.53,"laps":[36.55,75.85,110.53]},"lava":{"t":106.72,"laps":[36.67,73.2,106.72]},"space":{"t":94.25,"laps":[31.68,62.95,94.25]},"ratlab":{"t":128.48,"laps":[44.47,86.87,128.48]},"garden":{"t":121.68,"laps":[42.02,81.43,121.68]}};
+export const STAFF_T = {}; for (const k in STAFF_RAW) STAFF_T[k] = { t: +(STAFF_RAW[k].t * STAFF_PACE).toFixed(2), laps: STAFF_RAW[k].laps.map((x) => +(x * STAFF_PACE).toFixed(2)) };
 export function medalFor(id, t) { const st = STAFF_T[id] && STAFF_T[id].t; if (!st || !t) return 0; for (let m = 4; m >= 1; m--) if (t <= st * MEDALS[m].f + 1e-6) return m; return 0; }
 export function medalTarget(id, m) { const st = STAFF_T[id] && STAFF_T[id].t; return st ? st * MEDALS[m].f : null; }
 
