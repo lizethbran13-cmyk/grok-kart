@@ -32,7 +32,7 @@ export function encode(frames) { // dev: 15 Hz frames -> 7.5 Hz deltas (yaw unwr
   return out;
 }
 // staff times (3 laps, seconds) baked from the recorded ghosts so menus can show medals without downloading them
-export const STAFF_T = {};
+export const STAFF_T = {"city":{"t":107.43,"laps":[37.23,73.02,107.43]},"canyon":{"t":115.38,"laps":[37.98,77.08,115.38]},"candy":{"t":91.38,"laps":[30.32,59.85,91.38]},"beach":{"t":107.03,"laps":[36.57,71.25,107.03]},"castle":{"t":108.48,"laps":[37.07,70.6,108.48]},"frost":{"t":111.17,"laps":[36.65,73.67,111.17]},"lava":{"t":106.92,"laps":[36.42,71.47,106.92]},"space":{"t":103.73,"laps":[37.23,69.53,103.73]},"ratlab":{"t":139.1,"laps":[45,94.8,139.1]},"garden":{"t":121.88,"laps":[40.68,81.75,121.88]}};
 export function medalFor(id, t) { const st = STAFF_T[id] && STAFF_T[id].t; if (!st || !t) return 0; for (let m = 4; m >= 1; m--) if (t <= st * MEDALS[m].f + 1e-6) return m; return 0; }
 export function medalTarget(id, m) { const st = STAFF_T[id] && STAFF_T[id].t; return st ? st * MEDALS[m].f : null; }
 
@@ -40,13 +40,13 @@ export function medalTarget(id, m) { const st = STAFF_T[id] && STAFF_T[id].t; re
 export const LADDER = [
   { track: 'city', rival: 'snowie', f: 1.38, laps: 1, rule: '', coins: 20, line: 'Snowie: "First rung! I\'ll go easy on you… maybe."' },
   { track: 'beach', rival: 'martina', f: 1.32, laps: 1, rule: '', coins: 20, line: 'Torty: "Slow and steady? Not today, Torty has a turbo shell!"' },
-  { track: 'canyon', rival: 'pirat', f: 1.27, laps: 1, rule: 'noturbo', coins: 25, line: 'Pi-rat: "No turbos, matey! Just you, the road and me."' },
+  { track: 'canyon', rival: 'pirat', f: 1.31, laps: 1, rule: 'noturbo', coins: 25, line: 'Pi-rat: "No turbos, matey! Just you, the road and me."' },
   { track: 'candy', rival: 'candy', f: 1.21, laps: 3, rule: '', coins: 25, line: 'Candy: "Woof! Zoomies mode: ON! 🐾"' },
   { track: 'garden', rival: 'martina', f: 1.16, laps: 3, rule: '', coins: 30, line: 'Martina: "Welcome to my garden! Mind the snails, they bite."' },
-  { track: 'frost', rival: 'snowie', f: 1.12, laps: 3, rule: 'noturbo', coins: 30, line: 'Snowie: "Ice is my home turf. And no turbos for you!"' },
+  { track: 'frost', rival: 'snowie', f: 1.16, laps: 3, rule: 'noturbo', coins: 30, line: 'Snowie: "Ice is my home turf. And no turbos for you!"' },
   { track: 'castle', rival: 'pirat', f: 1.08, laps: 3, rule: '', coins: 35, line: 'Pi-rat: "Arr, this castle be haunted… by my fast laps!"' },
   { track: 'ratlab', rival: 'luna', f: 1.05, laps: 3, rule: '', coins: 40, line: 'Luna: "My lab, my rules. I calculated a 0.0% chance you win."' },
-  { track: 'lava', rival: 'candy', f: 1.025, laps: 3, rule: 'noturbo', coins: 45, line: 'Candy: "Hot paws! Hot paws! No turbos on lava!"' },
+  { track: 'lava', rival: 'candy', f: 1.07, laps: 3, rule: 'noturbo', coins: 45, line: 'Candy: "Hot paws! Hot paws! No turbos on lava!"' },
   { track: 'space', rival: 'luna', f: 1.0, laps: 3, rule: '', coins: 100, boss: 1, line: 'BOSS - Luna in the Ratita Rocket: "Beat my Staff ghost and you\'re a Ratita legend!"' },
 ];
 export function rungTarget(r) { const st = STAFF_T[r.track]; if (!st) return null; const base = r.laps === 1 ? st.laps[0] : st.t; return base * r.f; }
