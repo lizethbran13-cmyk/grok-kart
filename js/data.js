@@ -12,7 +12,7 @@ export const CHARS = [
   { id: 'bolt', n: 'Captain Bolt', d: 'Retired stunt racer', w: 'heavy', col: '#2563eb', col2: '#facc15', price: 150, kind: 'captain', stat: { spd: 5, acc: 2, han: 2, wt: 4 } },
   // Super Kart Expansion (DLC): the Ratita crew + Candy
   { id: 'luna', n: 'Luna', d: 'Ratita Industries star scientist', w: 'light', col: '#a9afbd', col2: '#7d8394', price: 0, dlc: 1, kind: 'rat', rat: 'luna', stat: { spd: 3, acc: 4, han: 4, wt: 1 } },
-  { id: 'pirat', n: 'Pi-rat', d: 'Captain of the high-speed seas', w: 'medium', col: '#c99a6b', col2: '#9c7148', price: 0, dlc: 1, kind: 'rat', rat: 'pirat', stat: { spd: 4, acc: 3, han: 3, wt: 3 } },
+  { id: 'pirat', n: 'Pi-rat', d: 'Captain of the high-speed seas', w: 'medium', col: '#f8f6f2', col2: '#6b5e52', price: 0, dlc: 1, kind: 'rat', rat: 'pirat', stat: { spd: 4, acc: 3, han: 3, wt: 3 } },
   { id: 'snowie', n: 'Snowie', d: 'Snow-white rat, ice-cold drifts', w: 'light', col: '#fbfbff', col2: '#e3e1ee', price: 0, dlc: 1, kind: 'rat', rat: 'snowie', stat: { spd: 2, acc: 5, han: 4, wt: 1 } },
   { id: 'candy', n: 'Candy', d: 'Schnauzer with zoomies', w: 'heavy', col: '#8a8d96', col2: '#e8e8ec', price: 0, dlc: 1, kind: 'schnauzer', stat: { spd: 5, acc: 2, han: 3, wt: 4 } },
 ];

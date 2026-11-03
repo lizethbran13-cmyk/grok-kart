@@ -123,13 +123,13 @@ function charGeo(id) {
       head.add(P.sphere, c1, 0, 0, 0, 0, 0, 0, 0.46, 0.42, 0.44); [-1, 1].forEach((s) => { head.add(P.capsule, c1, s * 0.17, 0.62, -0.05, -0.15, 0, -s * 0.15, 0.2, 0.7, 0.12); head.add(P.capsule, c2, s * 0.17, 0.62, 0.0, -0.15, 0, -s * 0.15, 0.12, 0.55, 0.06); });
       eyes(head, 0.08, 0.32, 0.16, 0.12); head.add(P.sphere, 0xff7ab6, 0, -0.07, 0.43, 0, 0, 0, 0.06, 0.045, 0.04); head.add(P.rboxS, 0xffffff, 0, -0.2, 0.41, 0, 0, 0, 0.1, 0.08, 0.03); hy = 1.05; break;
     case 'rat': { // Ratita crew (Luna / Pi-rat / Snowie): round ears, long snout, whiskers, pink tail
-      const v = C.rat, belly = v === 'pirat' ? 0xf6e7d4 : v === 'snowie' ? 0xffffff : 0xeceef3, pk = 0xff9cc0;
+      const v = C.rat, belly = v === 'pirat' ? 0xffffff : v === 'snowie' ? 0xffffff : 0xeceef3, pk = 0xff9cc0;
       body.add(blob(42, 0.04, 3), c1, 0, 0.45, 0, 0, 0, 0, 0.5, 0.55, 0.42); body.add(P.sphere, belly, 0, 0.42, 0.2, 0, 0, 0, 0.32, 0.38, 0.24);
       body.add(tube([[0, 0.25, -0.35], [0.1, 0.35, -0.75], [0.35, 0.65, -0.95], [0.45, 1.0, -0.85]], 0.045, 20, 8), pk);
       if (v === 'luna') { body.add(P.capsule, 0xffffff, 0, 0.5, 0, 0, 0, 0, 0.82, 0.42, 0.66); body.add(P.sphere, belly, 0, 0.5, 0.25, 0, 0, 0, 0.18, 0.3, 0.12); body.add(P.rboxS, 0x22d3ee, 0.18, 0.55, 0.32, 0, 0, 0, 0.1, 0.14, 0.04, 1); }
       if (v === 'pirat') { body.add(P.capsule, 0x7f1d1d, 0, 0.5, 0, 0, 0, 0, 0.8, 0.4, 0.64); body.add(P.rboxS, 0xffd60a, 0, 0.52, 0.31, 0, 0, 0, 0.42, 0.06, 0.04, 0.6); }
       if (v === 'snowie') body.add(P.torus, 0xff7ab6, 0, 0.82, 0, PI / 2, 0, 0, 0.28, 0.28, 0.5);
-      head.add(blob(43, 0.03, 3), c1, 0, 0, 0, 0, 0, 0, 0.46, 0.44, 0.46); head.add(P.sphere, c1, 0, -0.1, 0.36, 0, 0, 0, 0.27, 0.22, 0.32); head.add(P.sphere, belly, 0, -0.17, 0.42, 0, 0, 0, 0.2, 0.12, 0.22);
+      const hc = v === 'pirat' ? 0x6b5e52 : c1; head.add(blob(43, 0.03, 3), hc, 0, 0, 0, 0, 0, 0, 0.46, 0.44, 0.46); if (v === 'pirat') head.add(P.sphere, 0xffffff, 0, 0.2, 0.36, -0.5, 0, 0, 0.07, 0.24, 0.08); head.add(P.sphere, hc, 0, -0.1, 0.36, 0, 0, 0, 0.27, 0.22, 0.32); head.add(P.sphere, belly, 0, -0.17, 0.42, 0, 0, 0, 0.2, 0.12, 0.22);
       head.add(P.sphere, pk, 0, -0.06, 0.68, 0, 0, 0, 0.08, 0.07, 0.06); head.add(P.rboxS, 0xffffff, 0, -0.26, 0.6, 0, 0, 0, 0.09, 0.07, 0.03);
       [-1, 1].forEach((sd) => { head.add(P.sphere, c1, sd * 0.36, 0.38, -0.05, 0, 0, sd * 0.35, 0.27, 0.29, 0.09); head.add(P.sphere, pk, sd * 0.36, 0.38, -0.0, 0, 0, sd * 0.35, 0.19, 0.21, 0.05);
         for (let k = -1; k <= 1; k++) head.add(P.cyl, 0x4b5563, sd * 0.26, -0.1 + k * 0.05, 0.6, 0, sd * 0.25, PI / 2 + k * 0.18 * sd, 0.006, 0.42, 0.006); });
